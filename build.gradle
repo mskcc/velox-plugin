@@ -1,0 +1,42 @@
+group 'com.velox.sloan'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.1'
+    compile group: 'com.google.guava', name: 'guava', version: '22.0'
+//    compile group: 'com.velox', name: 'sapioutils', version: '5.1.3'
+
+    compile project(':common-domain')
+    compile files('lib/veloxapi-8.0.1.jar', 'lib/sloancmo.jar', 'lib/sapio-commons-3.1.jar', 'lib/sapioutils-5.1.4-LIMS8.0.0.jar', 'lib/accessionservice-1.3.2-LIMS8.0.1.jar', 'lib/sapiogeneric-7.7.1-LIMS8.0.1.jar')
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
+    testCompile group: 'org.mockito', name: 'mockito-all', version: '1.9.5'
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'LIMS Velox Plugins',
+                'Implementation-Version': version
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+jar {
+    manifest {
+        attributes("Implementation-Title": "Gradle",
+                "Implementation-Version": version,
+                'Class-Path': 'sapiogeneric.jar ../lib/sapio-commons.jar sapioclientpluginutils.jar ../lib/common-domain.jar ../lib/sloancmo.jar'
+        )
+    }
+}

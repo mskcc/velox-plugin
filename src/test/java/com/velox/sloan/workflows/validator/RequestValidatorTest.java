@@ -1,6 +1,6 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.sapioutils.server.plugin.DefaultGenericPlugin;
+import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
 import com.velox.sloan.workflows.notificator.MessageDisplay;
 import com.velox.sloan.workflows.notificator.Notificator;
 import com.velox.sloan.workflows.notificator.NotificatorSpy;
@@ -24,7 +24,7 @@ public class RequestValidatorTest {
     @Before
     public void setUp() {
         errorNotificatorSpy = new NotificatorSpy();
-        LoggerAndPopup.configure(mock(MessageDisplay.class));
+        LoggerAndPopupDisplayer.configure(mock(MessageDisplay.class));
     }
 
     @Test
@@ -188,6 +188,7 @@ public class RequestValidatorTest {
 
         assertFalse(valid);
         assertThat(notificatorSpy1.getNotifiedMessage(), is(errorMessage1+errorMessage2));
+        assertThat(notificatorSpy1.getReqIdToNotifyCounter().values().stream().anyMatch(counter -> counter == 1), is(true));
     }
 
     private Validator getValidatorMock(Notificator notificatorSpy, Boolean valid, String message) {

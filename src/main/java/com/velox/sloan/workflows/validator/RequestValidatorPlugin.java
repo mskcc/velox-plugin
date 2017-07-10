@@ -7,26 +7,30 @@ import com.velox.api.util.ServerException;
 import com.velox.api.workflow.ActiveTask;
 import com.velox.sapioutils.server.plugin.DefaultGenericPlugin;
 import com.velox.sapioutils.shared.enums.PluginOrder;
-import com.velox.sloan.cmo.staticstrings.datatypes.DT_Request;
 import com.velox.sloan.cmo.staticstrings.datatypes.DT_Sample;
 import com.velox.sloan.cmo.utilities.SloanCMOUtils;
+import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
 import com.velox.sloan.workflows.notificator.MessageDisplay;
 import com.velox.sloan.workflows.notificator.NotificatorFactory;
 import com.velox.sloan.workflows.validator.converter.Converter;
+import com.velox.sloan.workflows.validator.converter.RequestConverter;
 import com.velox.sloan.workflows.validator.converter.SampleConverter;
-import com.velox.sloan.workflows.validator.converter.SamplesToRequestsConverter;
+import com.velox.sloan.workflows.validator.converter.SampleRecordsToRequestsConverter;
+import com.velox.sloan.workflows.validator.retriever.VeloxRequestRetriever;
 import org.mskcc.domain.Request;
-import org.mskcc.domain.Sample;
+import org.mskcc.domain.sample.Sample;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 public class RequestValidatorPlugin extends DefaultGenericPlugin implements MessageDisplay {
     private final RequestValidator requestValidator = new RequestValidator();
     private NotificatorFactory notificatorFactory;
-    private Map<String, DataRecord> requestIdToRecord = new HashMap<>();
     private Map<String, DataRecord> sampleIgoIdToRecord = new HashMap<>();
     private Map<String, Request> requestIdToRequest = new HashMap<>();
+    private VeloxRequestRetriever requestRetriever;
+    private RequestConverter requestConverter;
+    private Predicate<Request> rnaSeqRequestPredicate = new RnaSeqRequestPredicate();
 
     public RequestValidatorPlugin() {
         setTaskSubmit(true);
@@ -41,12 +45,12 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
     @Override
     protected PluginResult run() throws Throwable {
         try {
-            LoggerAndPopup.configure(this);
-            logInfo("Running validator plugin log info");
+            LoggerAndPopupDisplayer.configure(this);
+            logInfo("Running validator plugin");
             init();
             validateRequests();
         } catch (Exception e) {
-            logError(String.format("Unable to validate recipes for workflow: %s, task: %s", activeWorkflow.getActiveWorkflowName(), activeTask.getFullName()), e);
+            logError(String.format("Unable to validate requests for workflow: %s, task: %s", activeWorkflow.getActiveWorkflowName(), activeTask.getFullName()), e);
         }
 
         return new PluginResult(true);
@@ -58,6 +62,8 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
     }
 
     private void init() throws Exception {
+        requestConverter = new RequestConverter(user);
+        requestRetriever = new VeloxRequestRetriever(dataRecordManager, user);
         notificatorFactory = new NotificatorFactory(this);
         sampleIgoIdToRecord = getSampleIgoIdToRecordMap();
         requestIdToRequest = getRequestIdToRequestMap();
@@ -66,18 +72,18 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
 
     private void initValidators() throws Exception {
         for (Validator validator : getValidators()) {
-            requestIdToRequest = validator.updateRequests(requestIdToRequest);
             requestValidator.addValidator(validator);
         }
     }
 
     private List<Validator> getValidators() {
         return Arrays.asList(
-                new RecipeValidator(notificatorFactory.getPopupNotificator(), user, sampleIgoIdToRecord),
-                new AutoRunnabilityValidator(notificatorFactory.getEmailNotificator(), user, requestIdToRecord),
-                new SpeciesValidator(notificatorFactory.getEmailNotificator(), user, sampleIgoIdToRecord),
-                new XenograftSpeciesValidator(notificatorFactory.getEmailNotificator(), user, sampleIgoIdToRecord),
-                new StrandValidator(notificatorFactory.getEmailNotificator(), user, dataRecordManager, sampleIgoIdToRecord)
+                new RecipeValidator(notificatorFactory.getPopupNotificator()),
+                new AutoRunnabilityValidator(notificatorFactory.getEmailNotificator()),
+                new SpeciesValidator(notificatorFactory.getEmailNotificator()),
+                new XenograftSpeciesValidator(notificatorFactory.getEmailNotificator()),
+                new StrandValidator(notificatorFactory.getEmailNotificator()),
+                new SampleClassValidator(notificatorFactory.getEmailNotificator())
         );
     }
 
@@ -93,31 +99,10 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
     }
 
     private Map<String, Request> getRequestIdToRequestMap() throws Exception {
-        requestIdToRecord = getRequestIdToRecordMap();
+        Converter<DataRecord, Sample> sampleConverter = new SampleConverter(user, dataRecordManager, notificatorFactory.getEmailNotificator());
+        SampleRecordsToRequestsConverter sampleRecordsToRequestsConverter = new SampleRecordsToRequestsConverter(sampleConverter, requestRetriever, requestConverter, rnaSeqRequestPredicate);
 
-        Converter<DataRecord, Sample> converter = new SampleConverter(user);
-        List<Sample> samples = sampleIgoIdToRecord.values().stream()
-                .map(s -> converter.convert(s))
-                .collect(Collectors.toList());
-
-        SamplesToRequestsConverter samplesToRequestsConverter = new SamplesToRequestsConverter();
-
-        return samplesToRequestsConverter.convert(samples);
-    }
-
-    private Map<String, DataRecord> getRequestIdToRecordMap() throws Exception {
-        SloanCMOUtils sloanCMOUtils = new SloanCMOUtils(managerContext);
-        List<DataRecord> sampleRecords = activeTask.getAttachedDataRecords(DT_Sample.DATA_TYPE, user);
-        Set<DataRecord> requestRecords = sloanCMOUtils.getAssociatedRequestRecordList(sampleRecords).stream()
-                .flatMap(r -> r.stream())
-                .collect(Collectors.toSet());
-
-        Map<String, DataRecord> requestIdToRequest = new HashMap<>();
-        for (DataRecord requestRecord : requestRecords) {
-            String requestId = requestRecord.getStringVal(DT_Request.REQUEST_ID, user);
-            requestIdToRequest.put(requestId, requestRecord);
-        }
-        return requestIdToRequest;
+        return sampleRecordsToRequestsConverter.convert(sampleIgoIdToRecord.values());
     }
 
     @Override

@@ -22,8 +22,6 @@ public abstract class Validator {
 
     abstract String getName();
 
-    abstract Map<String, Request> updateRequests(Map<String, Request> requests) throws Exception;
-
     abstract boolean shouldValidate(Request request);
 
     void addMessage(Request request) {

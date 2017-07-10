@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Recipe;
 import org.mskcc.domain.Request;
-import org.mskcc.domain.Sample;
+import org.mskcc.domain.sample.Sample;
 
 import java.util.Collections;
 import java.util.Map;
@@ -29,14 +29,14 @@ public class RecipeValidatorTest {
 
     @Test
     public void whenRecipesListIsEmpty_shouldReturnTrue() {
-        RecipeValidator recipeValidator = new RecipeValidator(notificator, user, sampleIdToRecords);
+        RecipeValidator recipeValidator = new RecipeValidator(notificator);
 
         assertThat(recipeValidator.isValid(request), is(true));
     }
 
     @Test
     public void whenRecipesContainOneValue_shouldReturnTrue() {
-        RecipeValidator recipeValidator = new RecipeValidator(notificator, user, sampleIdToRecords);
+        RecipeValidator recipeValidator = new RecipeValidator(notificator);
 
         Sample sample = getSample("id1", Recipe.RNA_SEQ_POLY_A);
         request.putSampleIfAbsent(sample);
@@ -51,7 +51,7 @@ public class RecipeValidatorTest {
 
     @Test
     public void whenRecipesContainTwoSameValues_shouldReturnTrue() {
-        RecipeValidator recipeValidator = new RecipeValidator(notificator, user, sampleIdToRecords);
+        RecipeValidator recipeValidator = new RecipeValidator(notificator);
 
         request.putSampleIfAbsent(getSample("id1", Recipe.RNA_SEQ_POLY_A));
         request.putSampleIfAbsent(getSample("id2", Recipe.RNA_SEQ_POLY_A));
@@ -61,7 +61,7 @@ public class RecipeValidatorTest {
 
     @Test
     public void whenRecipesContainTwoDifferentValues_shouldReturnFalse() {
-        RecipeValidator recipeValidator = new RecipeValidator(notificator, user, sampleIdToRecords);
+        RecipeValidator recipeValidator = new RecipeValidator(notificator);
 
         request.putSampleIfAbsent(getSample("id1", Recipe.RNA_SEQ_POLY_A));
         request.putSampleIfAbsent(getSample("id2", Recipe.AMPLI_SEQ));
@@ -70,7 +70,7 @@ public class RecipeValidatorTest {
 
     @Test
     public void whenRecipesContainMultipleSameValueAndOneDifferent_shouldReturnFalse() {
-        RecipeValidator recipeValidator = new RecipeValidator(notificator, user, sampleIdToRecords);
+        RecipeValidator recipeValidator = new RecipeValidator(notificator);
 
         request.putSampleIfAbsent(getSample("id1", Recipe.RNA_SEQ_POLY_A));
         request.putSampleIfAbsent(getSample("id2", Recipe.RNA_SEQ_POLY_A));

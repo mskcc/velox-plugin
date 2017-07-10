@@ -7,8 +7,8 @@ import com.velox.sloan.workflows.notificator.formatter.RequestMessageFormatter;
 
 public abstract class Notificator {
     private final Multimap<String, String> messages = LinkedListMultimap.create();
-    private final MessageFormatter requestMessageFormatter = new RequestMessageFormatter();
 
+    private final MessageFormatter requestMessageFormatter = new RequestMessageFormatter();
     public void notifyAllMessages(String requestId) {
         if (!messages.get(requestId).isEmpty()) {
             String message = requestMessageFormatter.getFormattedMessage(requestId, messages.get(requestId), getMessageSeparator());
@@ -22,5 +22,9 @@ public abstract class Notificator {
 
     public void addMessage(String requestId, String message) {
         messages.put(requestId, message);
+    }
+
+    public Multimap<String, String> getMessages() {
+        return messages;
     }
 }

@@ -22,7 +22,7 @@ public class AutoRunnabilityValidatorTest {
 
     @Before
     public void setUp() {
-        autoRunnabilityValidator = new AutoRunnabilityValidator(notificator, user, requestIdToRecord);
+        autoRunnabilityValidator = new AutoRunnabilityValidator(notificator);
     }
 
     @Test

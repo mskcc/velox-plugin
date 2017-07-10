@@ -1,7 +1,7 @@
 package com.velox.sloan.workflows.validator;
 
 import org.mskcc.domain.RequestSpecies;
-import org.mskcc.domain.Sample;
+import org.mskcc.domain.sample.Sample;
 import org.mskcc.domain.XenograftClass;
 import org.mskcc.util.Constants;
 

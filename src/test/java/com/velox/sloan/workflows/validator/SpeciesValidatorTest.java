@@ -6,8 +6,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Request;
 
-import java.util.Collections;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -20,7 +18,7 @@ public class SpeciesValidatorTest {
     public void setUp() {
         Notificator notificator = mock(Notificator.class);
         User user = mock(User.class);
-        speciesValidator = new SpeciesValidator(notificator, user, Collections.emptyMap());
+        speciesValidator = new SpeciesValidator(notificator);
         request = new Request("12345_A");
     }
 

@@ -1,18 +1,14 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.api.datarecord.DataRecord;
-import com.velox.api.user.User;
 import com.velox.sloan.workflows.notificator.Notificator;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.RequestSpecies;
-import org.mskcc.domain.Sample;
+import org.mskcc.domain.sample.Sample;
 import org.mskcc.util.Constants;
 
-import java.util.Map;
-
 public class XenograftSpeciesValidator extends SpeciesValidator {
-    public XenograftSpeciesValidator(Notificator notificator, User user, Map<String, DataRecord> sampleIgoIdToRecord) {
-        super(notificator, user, sampleIgoIdToRecord);
+    public XenograftSpeciesValidator(Notificator notificator) {
+        super(notificator);
     }
 
     @Override

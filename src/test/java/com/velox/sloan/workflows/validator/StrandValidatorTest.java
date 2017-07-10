@@ -1,17 +1,13 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.api.datarecord.DataRecordManager;
-import com.velox.api.user.User;
 import com.velox.sloan.workflows.notificator.Notificator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Recipe;
 import org.mskcc.domain.Request;
-import org.mskcc.domain.Sample;
 import org.mskcc.domain.Strand;
+import org.mskcc.domain.sample.Sample;
 import org.mskcc.util.Constants;
-
-import java.util.Collections;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -23,10 +19,7 @@ public class StrandValidatorTest {
     @Before
     public void setUp() {
         strandValidator = new StrandValidator(
-                mock(Notificator.class),
-                mock(User.class),
-                mock(DataRecordManager.class),
-                Collections.emptyMap());
+                mock(Notificator.class));
     }
 
     @Test

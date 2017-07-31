@@ -1,8 +1,6 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.api.datarecord.DataRecordManager;
-import com.velox.api.user.User;
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Request;
@@ -23,7 +21,7 @@ public class SampleClassValidatorTest {
 
     @Before
     public void setUp() throws Exception {
-        sampleClassValidator = new SampleClassValidator(mock(Notificator.class));
+        sampleClassValidator = new SampleClassValidator(mock(BulkNotificator.class));
         request = new Request("12345_P");
     }
 

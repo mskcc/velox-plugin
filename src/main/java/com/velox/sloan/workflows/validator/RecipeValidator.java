@@ -1,19 +1,31 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.apache.commons.lang3.StringUtils;
 import org.mskcc.domain.Request;
 
 import java.util.stream.Collectors;
 
-public class RecipeValidator extends Validator {
-    public RecipeValidator(Notificator notificator) {
-        super(notificator);
+public class RecipeValidator implements Validator {
+    private BulkNotificator notificator;
+
+    public RecipeValidator(BulkNotificator notificator) {
+        this.notificator = notificator;
     }
 
     @Override
     public boolean isValid(Request request) {
-        return isRecipeUnambiguous(request);
+        return allSamplesHaveRecipeSet(request) && isRecipeUnambiguous(request);
+    }
+
+    private boolean allSamplesHaveRecipeSet(Request request) {
+        return request.getSamples().values().stream()
+                .allMatch(s -> s.getRecipe() != null);
+    }
+
+    @Override
+    public BulkNotificator getBulkNotificator() {
+        return notificator;
     }
 
     private boolean isRecipeUnambiguous(Request request) {

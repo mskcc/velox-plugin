@@ -11,7 +11,7 @@ public class NotificatorTest {
 
     @Test
     public void whenAddNoMessage_shouldDisplayNoMessages() {
-        NotificatorSpy errorNotificator = new NotificatorSpy();
+        NotificatorSpy errorNotificator = new NotificatorSpy(new NotificatorSpy.MyNotificator());
 
         errorNotificator.notifyAllMessages(requestId);
 
@@ -20,7 +20,7 @@ public class NotificatorTest {
 
     @Test
     public void whenAddOneMessage_shouldDisplayOneMessage() {
-        NotificatorSpy errorNotificator = new NotificatorSpy();
+        NotificatorSpy errorNotificator = new NotificatorSpy(new NotificatorSpy.MyNotificator());
         String message = "My first sweet message";
         errorNotificator.addMessage(requestId, message);
 
@@ -31,7 +31,7 @@ public class NotificatorTest {
 
     @Test
     public void whenAddTwoMessages_shouldDisplayConcatenatedMessages() {
-        NotificatorSpy errorNotificator = new NotificatorSpy();
+        NotificatorSpy errorNotificator = new NotificatorSpy(new NotificatorSpy.MyNotificator());
         String message1 = "My first sweet message";
         String message2 = "My second sweeter message";
         errorNotificator.addMessage(requestId, message1);
@@ -44,7 +44,7 @@ public class NotificatorTest {
 
     @Test
     public void whenAddMultipleMessages_shouldDisplayConcatenatedMessagesInOrder() {
-        NotificatorSpy errorNotificator = new NotificatorSpy();
+        NotificatorSpy errorNotificator = new NotificatorSpy(new NotificatorSpy.MyNotificator());
         String message1 = "My first sweet message";
         String message2 = "My second even sweeter message";
         String message3 = "My third sweetest message";

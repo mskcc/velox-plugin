@@ -4,12 +4,8 @@ import com.velox.api.datarecord.DataRecord;
 import com.velox.sloan.workflows.validator.retriever.VeloxRequestRetriever;
 import org.junit.Before;
 import org.junit.Test;
-import org.mskcc.domain.Protocol;
-import org.mskcc.domain.Recipe;
-import org.mskcc.domain.Request;
-import org.mskcc.domain.Strand;
+import org.mskcc.domain.*;
 import org.mskcc.domain.sample.Sample;
-import org.mskcc.util.Constants;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -18,7 +14,6 @@ import java.util.stream.Collectors;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -151,7 +146,7 @@ public class SampleRecordsToRequestsConverterTest {
         List<Sample> samples = Arrays.asList(sample1);
 
         Map<String, Request> requests = sampleRecordsToRequestsConverter.convert(getSampleRecords(samples));
-        assertThat(requests.get(REQUEST_ID_1).getRequestType(), is(Constants.RNASEQ));
+        assertThat(requests.get(REQUEST_ID_1).getRequestType(), is(RequestType.RNASEQ));
     }
 
     @Test
@@ -164,7 +159,7 @@ public class SampleRecordsToRequestsConverterTest {
         SampleRecordsToRequestsConverter samplesConverter = new SampleRecordsToRequestsConverter(sampleConverter, requestRetriever, requestConverter, r -> false);
 
         Map<String, Request> requests = samplesConverter.convert(getSampleRecords(samples));
-        assertThat(requests.get(REQUEST_ID_1).getRequestType(), is(not(Constants.RNASEQ)));
+        assertThat(requests.get(REQUEST_ID_1).getRequestType(), is(not(RequestType.RNASEQ)));
     }
 
     private void assertRequestContainsSamples(Map<String, Request> requests, List<Sample> samples) {
@@ -224,12 +219,12 @@ public class SampleRecordsToRequestsConverterTest {
         return sampleRecordMocks;
     }
 
-    private Sample getSample(String igoId, String reqId, Recipe recipe, List<Strand> strands, List<Protocol> protocols) {
+    private Sample getSample(String igoId, String reqId, Recipe recipe, List<Strand> strands, List<ProtocolType> protocolTypes) {
         Sample sample = new Sample(igoId);
         sample.setRequestId(reqId);
         sample.setRecipe(Recipe.getRecipeByValue(recipe.getValue()));
         strands.forEach(s -> sample.addStrand(s));
-        protocols.forEach(p -> sample.addProtocol(p));
+        protocolTypes.forEach(p -> sample.addProtocol(p));
 
         return sample;
     }

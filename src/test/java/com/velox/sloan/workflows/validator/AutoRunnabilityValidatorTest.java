@@ -2,7 +2,7 @@ package com.velox.sloan.workflows.validator;
 
 import com.velox.api.datarecord.DataRecord;
 import com.velox.api.user.User;
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Request;
@@ -15,7 +15,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 public class AutoRunnabilityValidatorTest {
-    private Notificator notificator = mock(Notificator.class);
+    private BulkNotificator notificator = mock(BulkNotificator.class);
     private AutoRunnabilityValidator autoRunnabilityValidator;
     private User user = mock(User.class);
     private Map<String, DataRecord> requestIdToRecord = Collections.EMPTY_MAP;

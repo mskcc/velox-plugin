@@ -2,6 +2,8 @@ package com.velox.sloan.workflows.notificator;
 
 import org.mskcc.util.BasicMail;
 
+import java.util.Arrays;
+
 public class NotificatorFactory {
     private PopupNotificator popupNotificator;
     private LogNotificator logNotificator;
@@ -10,18 +12,18 @@ public class NotificatorFactory {
     public NotificatorFactory(MessageDisplay messageDisplay) {
         popupNotificator = new PopupNotificator(messageDisplay);
         logNotificator = new LogNotificator(messageDisplay);
-        emailNotificator = new EmailNotificator(new BasicMail(), messageDisplay);
+        emailNotificator = new EmailNotificator(new BasicMail());
     }
 
-    public PopupNotificator getPopupNotificator() {
-        return popupNotificator;
+    public BulkNotificator getPopupNotificator() {
+        return new BulkNotificator(Arrays.asList(popupNotificator, logNotificator));
     }
 
-    public LogNotificator getLogNotificator() {
-        return logNotificator;
+    public BulkNotificator getLogNotificator() {
+        return new BulkNotificator(Arrays.asList(logNotificator));
     }
 
-    public EmailNotificator getEmailNotificator() {
-        return emailNotificator;
+    public BulkNotificator getEmailNotificator() {
+        return new BulkNotificator(Arrays.asList(emailNotificator, logNotificator));
     }
 }

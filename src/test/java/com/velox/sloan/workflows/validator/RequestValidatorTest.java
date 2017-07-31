@@ -1,8 +1,8 @@
 package com.velox.sloan.workflows.validator;
 
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import com.velox.sloan.workflows.notificator.MessageDisplay;
-import com.velox.sloan.workflows.notificator.Notificator;
 import com.velox.sloan.workflows.notificator.NotificatorSpy;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,10 +12,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 public class RequestValidatorTest {
+    private final NotificatorSpy.MyNotificator mockNotificator = new NotificatorSpy.MyNotificator();
     private Request requestMock = mock(Request.class);
     private NotificatorSpy errorNotificatorSpy;
     private String errorMessage = "Error message";
@@ -23,7 +23,7 @@ public class RequestValidatorTest {
 
     @Before
     public void setUp() {
-        errorNotificatorSpy = new NotificatorSpy();
+        errorNotificatorSpy = new NotificatorSpy(mockNotificator);
         LoggerAndPopupDisplayer.configure(mock(MessageDisplay.class));
     }
 
@@ -135,9 +135,9 @@ public class RequestValidatorTest {
 
     @Test
     public void whenAllValidatorsAreValid_shouldNotNotifyAnyMessages() {
-        NotificatorSpy notificatorSpy1 = new NotificatorSpy();
+        NotificatorSpy notificatorSpy1 = new NotificatorSpy(mockNotificator);
         requestValidator.addValidator(getValidatorMock(notificatorSpy1, true, "error1"));
-        NotificatorSpy notificatorSpy2 = new NotificatorSpy();
+        NotificatorSpy notificatorSpy2 = new NotificatorSpy(mockNotificator);
         requestValidator.addValidator(getValidatorMock(notificatorSpy2, true, "error2"));
 
         boolean valid = requestValidator.isValid(requestMock);
@@ -150,7 +150,7 @@ public class RequestValidatorTest {
 
     @Test
     public void whenOneValidatorIsInvalid_shouldNotifyItsNotificator() {
-        NotificatorSpy notificatorSpy1 = new NotificatorSpy();
+        NotificatorSpy notificatorSpy1 = new NotificatorSpy(mockNotificator);
         String errorMessage = "error1";
         requestValidator.addValidator(getValidatorMock(notificatorSpy1, false, errorMessage));
 
@@ -162,8 +162,8 @@ public class RequestValidatorTest {
 
     @Test
     public void whenOneValidatorIsInvalidAndOneValid_shouldNotifyInvalidNotificator() {
-        NotificatorSpy notificatorSpy1 = new NotificatorSpy();
-        NotificatorSpy notificatorSpy2 = new NotificatorSpy();
+        NotificatorSpy notificatorSpy1 = new NotificatorSpy(mockNotificator);
+        NotificatorSpy notificatorSpy2 = new NotificatorSpy(new NotificatorSpy.MyNotificator());
         String errorMessage1 = "error1";
         String errorMessage2 = "error2";
         requestValidator.addValidator(getValidatorMock(notificatorSpy1, false, errorMessage1));
@@ -178,7 +178,7 @@ public class RequestValidatorTest {
 
     @Test
     public void whenTwoValidatorAreInvalidUsingSameNotificator_shouldConcatMessagesInOneNotificator() {
-        NotificatorSpy notificatorSpy1 = new NotificatorSpy();
+        NotificatorSpy notificatorSpy1 = new NotificatorSpy(mockNotificator);
         String errorMessage1 = "error1";
         String errorMessage2 = "error2";
         requestValidator.addValidator(getValidatorMock(notificatorSpy1, false, errorMessage1));
@@ -191,36 +191,42 @@ public class RequestValidatorTest {
         assertThat(notificatorSpy1.getReqIdToNotifyCounter().values().stream().anyMatch(counter -> counter == 1), is(true));
     }
 
-    private Validator getValidatorMock(Notificator notificatorSpy, Boolean valid, String message) {
-        Validator validValidatorMock = mock(Validator.class);
-        when(validValidatorMock.isValid(any())).thenReturn(valid);
-        when(validValidatorMock.getMessage(any())).thenReturn(message);
-        when(validValidatorMock.getNotificator()).thenReturn(notificatorSpy);
-        when(validValidatorMock.shouldValidate(any())).thenReturn(true);
-        doCallRealMethod().when(validValidatorMock).addMessage(any());
+    private Validator getValidatorMock(NotificatorSpy notificatorSpy, Boolean valid, String message) {
+        Validator validator = new Validator() {
+            @Override
+            public boolean isValid(Request request) {
+                return valid;
+            }
 
-        return validValidatorMock;
+            @Override
+            public BulkNotificator getBulkNotificator() {
+                return notificatorSpy;
+            }
+
+            @Override
+            public String getMessage(Request request) {
+                return message;
+            }
+
+            @Override
+            public String getName() {
+                return "";
+            }
+
+            @Override
+            public boolean shouldValidate(Request request) {
+                return true;
+            }
+        };
+
+        return validator;
     }
 
     private Validator getValidValidatorMock() {
-        Validator validValidatorMock = mock(Validator.class);
-        when(validValidatorMock.isValid(any())).thenReturn(true);
-        when(validValidatorMock.getNotificator()).thenReturn(errorNotificatorSpy);
-        when(validValidatorMock.shouldValidate(any())).thenReturn(true);
-        doCallRealMethod().when(validValidatorMock).addMessage(any());
-
-        return validValidatorMock;
+        return getValidatorMock(errorNotificatorSpy, true, "");
     }
 
     private Validator getInvalidValidatorMock() {
-        Validator invalidValidatorMock = mock(Validator.class);
-        when(invalidValidatorMock.isValid(any())).thenReturn(false);
-        when(invalidValidatorMock.getNotificator()).thenReturn(errorNotificatorSpy);
-        when(invalidValidatorMock.getMessage(any())).thenReturn(errorMessage);
-        when(invalidValidatorMock.shouldValidate(any())).thenReturn(true);
-        doCallRealMethod().when(invalidValidatorMock).addMessage(any());
-
-        return invalidValidatorMock;
+        return getValidatorMock(errorNotificatorSpy, false, errorMessage);
     }
-
 }

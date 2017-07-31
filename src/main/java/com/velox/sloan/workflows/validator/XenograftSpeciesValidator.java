@@ -1,13 +1,13 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.RequestSpecies;
 import org.mskcc.domain.sample.Sample;
 import org.mskcc.util.Constants;
 
 public class XenograftSpeciesValidator extends SpeciesValidator {
-    public XenograftSpeciesValidator(Notificator notificator) {
+    public XenograftSpeciesValidator(BulkNotificator notificator) {
         super(notificator);
     }
 

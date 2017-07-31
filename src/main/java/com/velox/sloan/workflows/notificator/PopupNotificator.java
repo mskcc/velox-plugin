@@ -1,6 +1,6 @@
 package com.velox.sloan.workflows.notificator;
 
-public class PopupNotificator extends Notificator {
+public class PopupNotificator implements Notificator {
     private MessageDisplay messageDisplay;
 
     public PopupNotificator(MessageDisplay messageDisplay) {

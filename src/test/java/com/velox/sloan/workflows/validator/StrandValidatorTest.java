@@ -1,13 +1,13 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Recipe;
 import org.mskcc.domain.Request;
+import org.mskcc.domain.RequestType;
 import org.mskcc.domain.Strand;
 import org.mskcc.domain.sample.Sample;
-import org.mskcc.util.Constants;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -19,7 +19,7 @@ public class StrandValidatorTest {
     @Before
     public void setUp() {
         strandValidator = new StrandValidator(
-                mock(Notificator.class));
+                mock(BulkNotificator.class));
     }
 
     @Test
@@ -78,7 +78,7 @@ public class StrandValidatorTest {
 
     private Request getRnaSeqRequestType() {
         Request request = new Request("12345_P");
-        request.setRequestType(Constants.RNASEQ);
+        request.setRequestType(RequestType.RNASEQ);
         return request;
     }
 

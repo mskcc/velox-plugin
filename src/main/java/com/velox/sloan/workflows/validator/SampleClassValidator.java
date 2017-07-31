@@ -1,6 +1,6 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.apache.commons.lang3.StringUtils;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.sample.Sample;
@@ -10,16 +10,23 @@ import org.mskcc.util.Constants;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class SampleClassValidator extends Validator {
+public class SampleClassValidator implements Validator {
     private final Predicate<Sample> sampleClassValidPredicate = new SampleClassValidPredicate();
+    private BulkNotificator notificator;
 
-    public SampleClassValidator(Notificator notificator) {
-        super(notificator);
+    public SampleClassValidator(BulkNotificator notificator) {
+        this.notificator = notificator;
     }
 
     @Override
-    boolean isValid(Request request) {
-        return request.getSamples().values().stream().allMatch(s -> sampleClassValidPredicate.test(s));
+    public boolean isValid(Request request) {
+        return request.getSamples().values().stream()
+                .allMatch(s -> sampleClassValidPredicate.test(s));
+    }
+
+    @Override
+    public BulkNotificator getBulkNotificator() {
+        return notificator;
     }
 
     private boolean isSampleClassTumor(String sampleClass) {
@@ -39,18 +46,18 @@ public class SampleClassValidator extends Validator {
     }
 
     @Override
-    String getMessage(Request request) {
+    public String getMessage(Request request) {
         String samplesWithAmbiguousClass = request.getSamples().values().stream().filter(s -> !sampleClassValidPredicate.test(s)).map(s -> s.getIgoId()).collect(Collectors.joining(","));
         return String.format("Request %s has samples with ambiguous sample class: %s", request.getId(), samplesWithAmbiguousClass);
     }
 
     @Override
-    String getName() {
+    public String getName() {
         return "Sample class validator";
     }
 
     @Override
-    boolean shouldValidate(Request request) {
+    public boolean shouldValidate(Request request) {
         return true;
     }
 

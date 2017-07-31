@@ -1,12 +1,13 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.mskcc.domain.Request;
 
-public class AutoRunnabilityValidator extends Validator {
+public class AutoRunnabilityValidator implements Validator {
+    private BulkNotificator notificator;
 
-    public AutoRunnabilityValidator(Notificator notificator) {
-        super(notificator);
+    public AutoRunnabilityValidator(BulkNotificator notificator) {
+        this.notificator = notificator;
     }
 
     @Override
@@ -15,8 +16,13 @@ public class AutoRunnabilityValidator extends Validator {
     }
 
     @Override
+    public BulkNotificator getBulkNotificator() {
+        return notificator;
+    }
+
+    @Override
     public String getMessage(Request request) {
-        return String.format("Request: %s is not autorunnable", request.getId());
+        return String.format("Request: %s is not BIC autorunnable", request.getId());
     }
 
     @Override

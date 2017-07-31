@@ -26,9 +26,22 @@ public class LoggerAndPopupDisplayer {
         messageDisplay.logDebugMessage(message);
     }
 
+    public static void logError(String message, Throwable t) {
+        messageDisplay.logErrorMessage(message, t);
+    }
+
+    public static void logInfo(String message, Exception e) {
+        messageDisplay.logInfoMessage(message, e);
+    }
+
     private static class NullMessageDisplay implements MessageDisplay {
         @Override
         public void logInfoMessage(String msg) {
+        }
+
+        @Override
+        public void logInfoMessage(String msg, Throwable t) {
+
         }
 
         @Override
@@ -40,7 +53,17 @@ public class LoggerAndPopupDisplayer {
         }
 
         @Override
+        public void logErrorMessage(String message, Throwable t) {
+
+        }
+
+        @Override
         public void logDebugMessage(String message) {
+        }
+
+        @Override
+        public void logDebugMessage(String message, Throwable t) {
+
         }
     }
 }

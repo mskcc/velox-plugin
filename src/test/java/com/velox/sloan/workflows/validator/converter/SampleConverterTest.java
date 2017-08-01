@@ -8,6 +8,7 @@ import com.velox.api.user.User;
 import com.velox.sloan.cmo.staticstrings.datatypes.DT_Sample;
 import com.velox.sloan.workflows.notificator.BulkNotificator;
 import com.velox.sloan.workflows.validator.retriever.SampleRetriever;
+import com.velox.sloan.workflows.validator.retriever.VeloxSampleRetriever;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Recipe;
@@ -26,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 public class SampleConverterTest {
     private SampleConverter sampleConverter;
-    private SampleRetriever sampleRetrieverMock = mock(SampleRetriever.class);
+    private SampleRetriever sampleRetrieverMock = mock(VeloxSampleRetriever.class);
 
     @Before
     public void setUp() {

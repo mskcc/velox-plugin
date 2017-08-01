@@ -17,6 +17,7 @@ import com.velox.sloan.workflows.notificator.NotificatorFactory;
 import com.velox.sloan.workflows.validator.converter.*;
 import com.velox.sloan.workflows.validator.retriever.SampleRetriever;
 import com.velox.sloan.workflows.validator.retriever.VeloxRequestRetriever;
+import com.velox.sloan.workflows.validator.retriever.VeloxSampleRetriever;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.sample.Sample;
 
@@ -113,7 +114,7 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
     }
 
     private Map<String, Request> getRequestIdToRequestMap() throws Exception {
-        SampleRetriever sampleRetriever = new SampleRetriever(sampleIgoIdToRecord, dataRecordManager, user, cmoSampleInfoConverter);
+        SampleRetriever sampleRetriever = new VeloxSampleRetriever(sampleIgoIdToRecord, dataRecordManager, user, cmoSampleInfoConverter);
         Converter<DataRecord, Sample> sampleConverter = new SampleConverter(user, dataRecordManager, notificatorFactory.getEmailNotificator(), sampleRetriever);
         SampleRecordsToRequestsConverter sampleRecordsToRequestsConverter = new SampleRecordsToRequestsConverter(sampleConverter, requestRetriever, requestConverter, rnaSeqRequestPredicate);
 

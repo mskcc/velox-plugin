@@ -1,7 +1,6 @@
 package com.velox.sloan.workflows.validator.converter;
 
 import com.velox.api.datarecord.DataRecord;
-import com.velox.api.datarecord.DataRecordManager;
 import com.velox.api.datarecord.NotFound;
 import com.velox.api.user.User;
 import org.mskcc.domain.Request;
@@ -14,11 +13,9 @@ public class RequestConverter implements Converter<DataRecord, Request> {
     private final ExomeRequestPredicate exomeRequestPredicate = new ExomeRequestPredicate();
     private final ImpactRequestPredicate impactRequestPredicate = new ImpactRequestPredicate();
     private final User user;
-    private final DataRecordManager dataRecordManager;
 
-    public RequestConverter(User user, DataRecordManager dataRecordManager) {
+    public RequestConverter(User user) {
         this.user = user;
-        this.dataRecordManager = dataRecordManager;
     }
 
     @Override

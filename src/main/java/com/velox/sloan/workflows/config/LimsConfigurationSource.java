@@ -20,7 +20,7 @@ public class LimsConfigurationSource implements ConfigurationSource {
     @Override
     public List<String> getNotificationEmailAddresses() throws Exception {
         List<String> emailAddresses = new ArrayList<>();
-        List<DataRecord> validatorConfigs = dataRecordManager.queryDataRecords(VeloxConstants.VALIDATOR_CONFIGURATION, "1=1", user);
+        List<DataRecord> validatorConfigs = dataRecordManager.queryDataRecords(VeloxConstants.VALIDATOR_CONFIGURATION, null, user);
 
         for (DataRecord validatorConfig : validatorConfigs) {
             emailAddresses.add(validatorConfig.getStringVal(VeloxConstants.NOTIFICATION_EMAIL_ADDRESS, user));

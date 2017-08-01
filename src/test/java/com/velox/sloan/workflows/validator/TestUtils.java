@@ -1,8 +1,9 @@
 package com.velox.sloan.workflows.validator;
 
+import org.mskcc.domain.Request;
 import org.mskcc.domain.RequestSpecies;
-import org.mskcc.domain.sample.Sample;
 import org.mskcc.domain.XenograftClass;
+import org.mskcc.domain.sample.Sample;
 import org.mskcc.util.Constants;
 
 public class TestUtils {
@@ -41,5 +42,12 @@ public class TestUtils {
 
     private static String getIgoId() {
         return "12345_P" + (sampleId++);
+    }
+
+    public static Request getRequestWithName(String name) {
+        Request request = new Request("12345_P");
+        request.setName(name);
+
+        return request;
     }
 }

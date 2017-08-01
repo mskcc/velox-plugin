@@ -37,7 +37,7 @@ public class NimleGenProtocolValidator implements Validator {
 
     @Override
     public String getMessage(Request request) {
-        return String.format("Request: %s doesn't have correctly set Nimble Gen Protocols: %s", errorMessage);
+        return String.format("Request: %s doesn't have correctly set NimbleGen Protocols: %s", errorMessage);
     }
 
     @Override

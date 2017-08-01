@@ -67,7 +67,7 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
 
     private void init() throws Exception {
         loadProperties();
-        requestConverter = new RequestConverter(user, dataRecordManager);
+        requestConverter = new RequestConverter(user);
         requestRetriever = new VeloxRequestRetriever(dataRecordManager, user);
         notificatorFactory = new NotificatorFactory(this);
         sampleIgoIdToRecord = getSampleIgoIdToRecordMap();

@@ -1,29 +1,40 @@
 package com.velox.sloan.workflows.notificator;
 
-import org.mskcc.util.BasicMail;
+import com.velox.sloan.workflows.config.AppConfig;
+import org.mskcc.util.JavaxEmailSender;
 
 import java.util.Arrays;
 
 public class NotificatorFactory {
-    private PopupNotificator popupNotificator;
-    private LogNotificator logNotificator;
-    private EmailNotificator emailNotificator;
+    private final PopupNotificator popupNotificator;
+    private final LogNotificator logNotificator;
+    private final EmailNotificator emailNotificator;
+
+    private BulkNotificator emailBulkNotificator;
+    private BulkNotificator logBulkNotificator;
+    private BulkNotificator popupBulkNotificator;
 
     public NotificatorFactory(MessageDisplay messageDisplay) {
         popupNotificator = new PopupNotificator(messageDisplay);
         logNotificator = new LogNotificator(messageDisplay);
-        emailNotificator = new EmailNotificator(new BasicMail());
+        emailNotificator = new EmailNotificator(new JavaxEmailSender(), AppConfig.getEmailConfiguration());
     }
 
     public BulkNotificator getPopupNotificator() {
-        return new BulkNotificator(Arrays.asList(popupNotificator, logNotificator));
+        if (popupBulkNotificator == null)
+            popupBulkNotificator = new BulkNotificator(Arrays.asList(popupNotificator, logNotificator));
+        return popupBulkNotificator;
     }
 
     public BulkNotificator getLogNotificator() {
-        return new BulkNotificator(Arrays.asList(logNotificator));
+        if (logBulkNotificator == null)
+            logBulkNotificator = new BulkNotificator(Arrays.asList(logNotificator));
+        return logBulkNotificator;
     }
 
     public BulkNotificator getEmailNotificator() {
-        return new BulkNotificator(Arrays.asList(emailNotificator, logNotificator));
+        if (emailBulkNotificator == null)
+            emailBulkNotificator = new BulkNotificator(Arrays.asList(emailNotificator, logNotificator));
+        return emailBulkNotificator;
     }
 }

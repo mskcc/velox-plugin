@@ -1,6 +1,7 @@
 package com.velox.sloan.workflows.validator;
 
 import com.velox.sloan.workflows.notificator.BulkNotificator;
+import com.velox.sloan.workflows.util.Utils;
 import org.mskcc.domain.KapaAgilentCaptureProtocol;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.RequestType;
@@ -9,7 +10,6 @@ import org.mskcc.domain.sample.Sample;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class KapaProtocolValidator implements Validator {
     private final BulkNotificator notificator;
@@ -35,9 +35,7 @@ public class KapaProtocolValidator implements Validator {
     @Override
     public String getMessage(Request request) {
         Set<Sample> nonValidSamples = samplesValidator.getNonValidSamples(request, kapaProtocolValidPredicate);
-        String nonValidSampleIds = nonValidSamples.stream()
-                .map(s -> String.format("%s (%s)", s.getIgoId(), s.getCmoSampleId()))
-                .collect(Collectors.joining(","));
+        String nonValidSampleIds = Utils.getJoinedIgoAndCmoSamplesIds(nonValidSamples);
 
         return String.format("KAPAAgilentCaptureProtocols are not set for request: %s for samples: %s", request.getId(), nonValidSampleIds);
     }

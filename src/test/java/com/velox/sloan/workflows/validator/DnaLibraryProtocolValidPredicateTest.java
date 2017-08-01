@@ -19,10 +19,10 @@ public class DnaLibraryProtocolValidPredicateTest {
     }
 
     @Test
-    public void whenSampleHasNoDnaLibraryProtocols_shouldBeValid() {
+    public void whenSampleHasNoDnaLibraryProtocols_shouldBeInvalid() {
         boolean valid = dnaLibraryProtocolValidPredicate.test(sample);
 
-        assertThat(valid, is(true));
+        assertThat(valid, is(false));
     }
 
     @Test
@@ -108,23 +108,23 @@ public class DnaLibraryProtocolValidPredicateTest {
     }
 
     @Test
-    public void whenSampleHasOneCorrectOneIncorrectSameTypeProtocol_shouldBeInvalid() {
+    public void whenSampleHasOneCorrectOneIncorrectSameTypeProtocol_shouldBeValid() {
         sample.getProtocols().put(VeloxConstants.DNA_LIBRARY_PREP_PROTOCOL_2, getValidCorrectElutionProtocol());
         sample.getProtocols().put(VeloxConstants.DNA_LIBRARY_PREP_PROTOCOL_2, getInvalidCorrectElutionProtocol());
 
         boolean valid = dnaLibraryProtocolValidPredicate.test(sample);
 
-        assertThat(valid, is(false));
+        assertThat(valid, is(true));
     }
 
     @Test
-    public void whenSampleHasOneCorrectOneIncorrectDifferentTypeProtocol_shouldBeInvalid() {
+    public void whenSampleHasOneCorrectOneIncorrectDifferentTypeProtocol_shouldBeValid() {
         sample.getProtocols().put(VeloxConstants.DNA_LIBRARY_PREP_PROTOCOL_2, getValidCorrectElutionProtocol());
         sample.getProtocols().put(VeloxConstants.DNA_LIBRARY_PREP_PROTOCOL_3, getInvalidCorrectElutionProtocol());
 
         boolean valid = dnaLibraryProtocolValidPredicate.test(sample);
 
-        assertThat(valid, is(false));
+        assertThat(valid, is(true));
     }
 
     @Test
@@ -141,7 +141,7 @@ public class DnaLibraryProtocolValidPredicateTest {
     }
 
     @Test
-    public void whenSampleHasAllValidProtocolsAndOneInvalidOfDifferentType_shouldBeInvalid() {
+    public void whenSampleHasAllValidProtocolsAndOneInvalidOfDifferentType_shouldBeValid() {
         sample.getProtocols().put(VeloxConstants.DNA_LIBRARY_PREP_PROTOCOL_2, getValidCorrectElutionProtocol());
         sample.getProtocols().put(VeloxConstants.DNA_LIBRARY_PREP_PROTOCOL_2, getValidCorrectElutionProtocol());
         sample.getProtocols().put(VeloxConstants.DNA_LIBRARY_PREP_PROTOCOL_2, getValidCorrectElutionProtocol());
@@ -150,7 +150,7 @@ public class DnaLibraryProtocolValidPredicateTest {
 
         boolean valid = dnaLibraryProtocolValidPredicate.test(sample);
 
-        assertThat(valid, is(false));
+        assertThat(valid, is(true));
     }
 
     private Protocol getEmptyValidityCorrectElutionProtocol() {

@@ -2,12 +2,12 @@ package com.velox.sloan.workflows.notificator;
 
 import java.util.*;
 
-public class NotificatorSpy extends BulkNotificator {
+public class BulkNotificatorSpy extends BulkNotificator {
     private List<String> addedMessages = new LinkedList<>();
     private Map<String, Integer> reqIdToNotifyCounter = new HashMap<>();
     private MyNotificator mockNotificator;
 
-    public NotificatorSpy(MyNotificator mockNotificator) {
+    public BulkNotificatorSpy(MyNotificator mockNotificator) {
         super(Arrays.asList(mockNotificator));
         this.mockNotificator = mockNotificator;
     }

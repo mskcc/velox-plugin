@@ -1,7 +1,7 @@
 package com.velox.sloan.workflows.validator;
 
 import com.velox.sloan.workflows.notificator.BulkNotificator;
-import org.apache.commons.lang3.StringUtils;
+import com.velox.sloan.workflows.util.Utils;
 import org.mskcc.domain.Protocol;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.RequestType;
@@ -37,7 +37,9 @@ public class DnaLibraryProtocolValidator implements Validator {
     @Override
     public String getMessage(Request request) {
         Set<Sample> nonValidSamples = samplesValidator.getNonValidSamples(request, dnaLibraryProtocolValidPredicate);
-        return String.format("Request: %s has samples with incorrect elution volume in Dna Library Protocol %s", StringUtils.join(nonValidSamples, ","));
+        String nonValidSampleIds = Utils.getJoinedIgoAndCmoSamplesIds(nonValidSamples);
+
+        return String.format("Request: %s has samples with no valid Dna Library Protocol with Elution Volume set: %s", request.getId(), nonValidSampleIds);
     }
 
     @Override
@@ -63,7 +65,7 @@ public class DnaLibraryProtocolValidator implements Validator {
                 protocols.addAll(dnaLibProtocol3);
 
             return protocols.stream()
-                    .allMatch(d -> d.isValid() != null && d.isValid() && d.getProtocolFields().containsKey(VeloxConstants.ELUTION_VOL));
+                    .anyMatch(d -> d.isValid() != null && d.isValid() && d.getProtocolFields().containsKey(VeloxConstants.ELUTION_VOL));
         }
     }
 }

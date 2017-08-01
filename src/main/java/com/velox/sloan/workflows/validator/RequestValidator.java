@@ -38,13 +38,13 @@ class RequestValidator {
     }
 
     private void notifyErrorNotificators(Request request) {
-        getNofiticatorsToNotify()
+        getNotificatorsToNotify()
                 .forEach(en -> en.notifyAllMessages(request.getId()));
     }
 
-    private Stream<BulkNotificator> getNofiticatorsToNotify() {
+    private Stream<BulkNotificator> getNotificatorsToNotify() {
         return validators.stream()
-                .map(v -> v.getBulkNotificator())
+                .map(Validator::getBulkNotificator)
                 .distinct()
                 .filter(n -> !n.getMessages().isEmpty());
     }
@@ -52,5 +52,4 @@ class RequestValidator {
     void addValidator(Validator validator) {
         validators.add(validator);
     }
-
 }

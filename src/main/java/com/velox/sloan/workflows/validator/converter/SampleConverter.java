@@ -42,6 +42,7 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
         try {
             igoId = sampleRecord.getStringVal(DT_Sample.SAMPLE_ID, user);
             Sample sample = new Sample(igoId);
+            sample.setCmoSampleId(sampleRecord.getStringVal(DT_Sample.OTHER_SAMPLE_ID, user));
             sample.setRequestId(sampleRecord.getStringVal(DT_Sample.REQUEST_ID, user));
 
             addSampleClass(sample, sampleRecord);

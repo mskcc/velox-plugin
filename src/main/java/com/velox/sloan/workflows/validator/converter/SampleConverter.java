@@ -8,10 +8,9 @@ import com.velox.api.user.User;
 import com.velox.api.util.ServerException;
 import com.velox.sloan.cmo.staticstrings.datatypes.DT_Sample;
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
-import com.velox.sloan.workflows.notificator.Notificator;
-import org.mskcc.domain.Protocol;
-import org.mskcc.domain.Recipe;
-import org.mskcc.domain.Strand;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
+import com.velox.sloan.workflows.validator.retriever.SampleRetriever;
+import org.mskcc.domain.*;
 import org.mskcc.domain.sample.CmoSampleInfo;
 import org.mskcc.domain.sample.Sample;
 import org.mskcc.domain.sample.TumorNormalType;
@@ -21,15 +20,20 @@ import org.mskcc.util.VeloxConstants;
 import java.rmi.RemoteException;
 import java.util.*;
 
+import static org.mskcc.util.VeloxConstants.KAPA_AGILENT_CAPTURE_PROTOCOL_1;
+import static org.mskcc.util.VeloxConstants.KAPA_AGILENT_CAPTURE_PROTOCOL_2;
+
 public class SampleConverter implements Converter<DataRecord, Sample> {
     private final User user;
     private final DataRecordManager dataRecordManager;
-    private final Notificator notificator;
+    private final BulkNotificator notificator;
+    private SampleRetriever sampleRetriever;
 
-    public SampleConverter(User user, DataRecordManager dataRecordManager, Notificator notificator) {
+    public SampleConverter(User user, DataRecordManager dataRecordManager, BulkNotificator notificator, SampleRetriever sampleRetriever) {
         this.user = user;
         this.dataRecordManager = dataRecordManager;
         this.notificator = notificator;
+        this.sampleRetriever = sampleRetriever;
     }
 
     @Override
@@ -38,15 +42,127 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
         try {
             igoId = sampleRecord.getStringVal(DT_Sample.SAMPLE_ID, user);
             Sample sample = new Sample(igoId);
+            sample.setCmoSampleId(sampleRecord.getStringVal(DT_Sample.OTHER_SAMPLE_ID, user));
             sample.setRequestId(sampleRecord.getStringVal(DT_Sample.REQUEST_ID, user));
-            fillSampleClass(sample, sampleRecord);
+
+            addSampleClass(sample, sampleRecord);
             addSpecies(sample, sampleRecord);
             addRecipe(sample, sampleRecord);
             addStrandInfo(sample, sampleRecord);
+            addKapaProtocol(sample, sampleRecord);
+            addNimbleGenProtocol(sample, sampleRecord);
+            addDnaLibraryProtocol(sample, sampleRecord);
 
             return sample;
         } catch (Exception e) {
             throw new SampleConvertionException(String.format("Unable to convert sample data record to sample ", igoId), e);
+        }
+    }
+
+    private void addDnaLibraryProtocol(Sample sample, DataRecord sampleRecord) {
+        double libVol = getLibraryVolume(sample, sampleRecord, VeloxConstants.DNA_LIBRARY_PREP_PROTOCOL_3);
+        if (libVol <= 0) {
+            getLibraryVolume(sample, sampleRecord, VeloxConstants.DNA_LIBRARY_PREP_PROTOCOL_2);
+        }
+    }
+
+    private double getLibraryVolume(Sample sample, DataRecord rec, String protocolName) {
+        List<DataRecord> DNALibPreps = new ArrayList<>();
+        try {
+            DNALibPreps = rec.getDescendantsOfType(protocolName, user);
+        } catch (Exception e) {
+        }
+
+        if (DNALibPreps == null || DNALibPreps.size() == 0)
+            return -9;
+
+        double input = -1;
+        for (DataRecord dnaLibRecord : DNALibPreps) {
+            Protocol dnaLibraryPrepProtocol = new Protocol();
+            Boolean real = getValidity(dnaLibRecord);
+            dnaLibraryPrepProtocol.setValid(real);
+
+            if (real)
+                input = getElutionVolume(sample, protocolName, dnaLibRecord);
+
+            dnaLibraryPrepProtocol.getProtocolFields().putIfAbsent(VeloxConstants.ELUTION_VOL, input);
+            sample.getProtocols().put(protocolName, dnaLibraryPrepProtocol);
+        }
+
+        return input;
+    }
+
+    private double getElutionVolume(Sample sample, String dataRecordName, DataRecord dnaLibRecord) {
+        double input = -1;
+
+        try {
+            input = dnaLibRecord.getDoubleVal(VeloxConstants.ELUTION_VOL, user);
+        } catch (NullPointerException e) {
+            input = -1;
+            LoggerAndPopupDisplayer.logInfo(String.format("Cannot find elution vol for %s AKA %s Using DataRecord %s", sample.getCmoSampleId(), sample.getIgoId(), dataRecordName));
+        } catch (Exception e) {
+            LoggerAndPopupDisplayer.logInfo("Exception thrown while retrieving information about Elution Volume", e);
+        }
+        return input;
+    }
+
+    private Boolean getValidity(DataRecord n1) {
+        Boolean real;
+        try {
+            real = n1.getBooleanVal(VeloxConstants.VALID, user);
+        } catch (Exception e) {
+            real = false;
+        }
+        return real;
+    }
+
+    private void addKapaProtocol(Sample sample, DataRecord sampleRecord) {
+        sample.setKapaAgilentCaptureProtocols1(getKapaAgilentCaptureProtocol1(sample, sampleRecord));
+        sample.setKapaAgilentCaptureProtocols1(getKapaAgilentCaptureProtocol2(sample, sampleRecord));
+    }
+
+    private List<KapaAgilentCaptureProtocol> getKapaAgilentCaptureProtocol2(Sample sample, DataRecord sampleRecord) {
+        return getKapaAgilentCaptureProtocol(sample, sampleRecord, KAPA_AGILENT_CAPTURE_PROTOCOL_2);
+    }
+
+    private List<KapaAgilentCaptureProtocol> getKapaAgilentCaptureProtocol1(Sample sample, DataRecord sampleRecord) {
+        return getKapaAgilentCaptureProtocol(sample, sampleRecord, KAPA_AGILENT_CAPTURE_PROTOCOL_1);
+    }
+
+    private List<KapaAgilentCaptureProtocol> getKapaAgilentCaptureProtocol(Sample sample, DataRecord sampleRecord, String protocolName) {
+        List<KapaAgilentCaptureProtocol> kapaAgilentCaptureProtocols = new ArrayList<>();
+        try {
+            List<List<Map<String, Object>>> protocolFieldsList = dataRecordManager.getFieldsForDescendantsOfType(Arrays.asList(sampleRecord), protocolName, user);
+            for (Map<String, Object> protocolFields : protocolFieldsList.get(0)) {
+                KapaAgilentCaptureProtocol kapaAgilentCaptureProtocol = new KapaAgilentCaptureProtocol();
+                kapaAgilentCaptureProtocol.setProtocolFields(protocolFields);
+                kapaAgilentCaptureProtocols.add(kapaAgilentCaptureProtocol);
+            }
+        } catch (Exception e) {
+            LoggerAndPopupDisplayer.logError(String.format("Exception thrown while retrieving information about %s for sample: %s", protocolName, sample.getIgoId()), e);
+        }
+
+        return kapaAgilentCaptureProtocols;
+    }
+
+    private void addNimbleGenProtocol(Sample sample, DataRecord sampleRecord) {
+        try {
+            List<DataRecord> nimbProtocols = sampleRecord.getDescendantsOfType(VeloxConstants.NIMBLE_GEN_HYB_PROTOCOL, user);
+            List<Object> valid = dataRecordManager.getValueList(nimbProtocols, VeloxConstants.VALID, user);
+            List<Object> igoId = dataRecordManager.getValueList(nimbProtocols, VeloxConstants.SAMPLE_ID, user);
+            List<Object> creationDate = dataRecordManager.getValueList(nimbProtocols, "DateCreated", user);
+
+            for (int i = 0; i < nimbProtocols.size(); i++) {
+                NimbleGenHybProtocol nimbleGenHybProtocol = new NimbleGenHybProtocol();
+                nimbleGenHybProtocol.setValid((boolean) valid.get(i));
+                nimbleGenHybProtocol.setCreationDate(new Date((long) creationDate.get(i)));
+                nimbleGenHybProtocol.setIgoSampleId((String) igoId.get(i));
+
+                sample.addNimbleGenHybProtocol(nimbleGenHybProtocol);
+            }
+
+        } catch (Exception e) {
+
         }
     }
 
@@ -57,29 +173,29 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
             Recipe recipe = Recipe.getRecipeByValue(recipeName);
             sample.setRecipe(recipe);
         } catch (Recipe.UnsupportedRecipeException e) {
-            notificator.addMessage(sample.getRequestId(), String.format("Sample: %s - %s", sample.getIgoId(), e.getMessage()));
+            String message = String.format("Unsupported recipe for sample: %s", sample.getIgoId());
+            notificator.addMessage(sample.getRequestId(), message);
+            LoggerAndPopupDisplayer.logError(message, e);
+        } catch (Recipe.EmptyRecipeException e) {
+            String message = String.format("Empty recipe for sample: %s", sample.getIgoId());
+            notificator.addMessage(sample.getRequestId(), message);
+            LoggerAndPopupDisplayer.logError(message, e);
         }
     }
 
-    private void fillSampleClass(Sample sample, DataRecord sampleRecord) throws Exception {
+    private void addSampleClass(Sample sample, DataRecord sampleRecord) throws Exception {
         sample.setSampleClass(sampleRecord.getStringVal(VeloxConstants.CMO_SAMPLE_CLASS, user));
         TumorNormalType tumorNormalType = TumorNormalType.getByValue(sampleRecord.getStringVal(VeloxConstants.TUMOR_OR_NORMAL, user));
         sample.setTumorNormalType(tumorNormalType);
 
-        fillInSampleInfo(sample, sampleRecord);
+        addSampleInfo(sample);
     }
 
-    private void fillInSampleInfo(Sample sample, DataRecord sampleRecord) throws Exception {
-        List<List<Map<String, Object>>> sampleInfos = dataRecordManager.getFieldsForChildrenOfType(Collections.singletonList(sampleRecord), VeloxConstants.SAMPLE_CMO_INFO_RECORDS, user);
-        if (sampleInfos.size() > 0 && sampleInfos.get(0).size() > 0) {
-            Map<String, Object> sampleInfo = sampleInfos.get(0).get(0);
-
-            CmoSampleInfo cmoSampleInfo = sample.getCmoSampleInfo();
-            cmoSampleInfo.setSampleClass(String.valueOf(sampleInfo.get(VeloxConstants.CMO_SAMPLE_CLASS)));
-            TumorNormalType tumorNormalType = TumorNormalType.getByValue(String.valueOf(sampleInfo.get(VeloxConstants.TUMOR_OR_NORMAL)));
-            cmoSampleInfo.setTumorNormalType(tumorNormalType);
-        }
+    private void addSampleInfo(Sample sample) throws Exception {
+        CmoSampleInfo cmoSampleInfo = sampleRetriever.getCmoSampleInfo(sample.getIgoId());
+        sample.setCmoSampleInfo(cmoSampleInfo);
     }
+
 
     private void addSpecies(Sample sample, DataRecord sampleRecord) throws NotFound, RemoteException {
         sample.put(Constants.SPECIES, sampleRecord.getStringVal(VeloxConstants.SPECIES, user));
@@ -90,23 +206,23 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
         processTruSeqRnaProtocol(sample, sampleRecord);
         if (Arrays.asList(sampleRecord.getChildrenOfType(VeloxConstants.TRU_SEQ_RNA_SM_RNA_PROTOCOL_4, user)).size() > 0) {
             sample.addStrand(Strand.EMPTY);
-            sample.addProtocol(Protocol.TRU_SEQ_RNA_SM_RNA_PROTOCOL_4);
+            sample.addProtocol(ProtocolType.TRU_SEQ_RNA_SM_RNA_PROTOCOL_4);
         }
         if (checkValidBool(Arrays.asList(sampleRecord.getChildrenOfType(VeloxConstants.TRU_SEQ_RIBO_DEPLETE_PROTOCOL_1, user)), dataRecordManager, user)) {
             sample.addStrand(Strand.REVERSE);
-            sample.addProtocol(Protocol.TRU_SEQ_RIBO_DEPLETE_PROTOCOL_1);
+            sample.addProtocol(ProtocolType.TRU_SEQ_RIBO_DEPLETE_PROTOCOL_1);
         }
         if (checkValidBool(Arrays.asList(sampleRecord.getChildrenOfType(VeloxConstants.TRU_SEQ_RNA_FUSION_PROTOCOL_1, user)), dataRecordManager, user)) {
             sample.addStrand(Strand.NONE);
-            sample.addProtocol(Protocol.TRU_SEQ_RNA_FUSION_PROTOCOL_1);
+            sample.addProtocol(ProtocolType.TRU_SEQ_RNA_FUSION_PROTOCOL_1);
         }
         if (checkValidBool(Arrays.asList(sampleRecord.getChildrenOfType(VeloxConstants.SMAR_TER_AMPLIFICATION_PROTOCOL_1, user)), dataRecordManager, user)) {
             sample.addStrand(Strand.NONE);
-            sample.addProtocol(Protocol.SMAR_TER_AMPLIFICATION_PROTOCOL_1);
+            sample.addProtocol(ProtocolType.SMAR_TER_AMPLIFICATION_PROTOCOL_1);
         }
         if (checkValidBool(Arrays.asList(sampleRecord.getChildrenOfType(VeloxConstants.KAPA_MRNA_STRANDED_SEQ_PROTOCOL_1, user)), dataRecordManager, user)) {
             sample.addStrand(Strand.REVERSE);
-            sample.addProtocol(Protocol.KAPA_MRNA_STRANDED_SEQ_PROTOCOL_1);
+            sample.addProtocol(ProtocolType.KAPA_MRNA_STRANDED_SEQ_PROTOCOL_1);
         }
     }
 
@@ -132,7 +248,7 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
     private void addStrands(Sample sample, List<DataRecord> rnaExp) throws ServerException, RemoteException {
         for (Object stranding : dataRecordManager.getValueList(rnaExp, VeloxConstants.TRU_SEQ_STRANDING, user)) {
             sample.addStrand(getStrand(stranding));
-            sample.addProtocol(Protocol.TRU_SEQ_STRANDING);
+            sample.addProtocol(ProtocolType.TRU_SEQ_STRANDING);
         }
     }
 

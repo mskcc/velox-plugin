@@ -1,9 +1,9 @@
 package com.velox.sloan.workflows.validator;
 
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
+import com.velox.sloan.workflows.notificator.BulkNotificatorSpy;
 import com.velox.sloan.workflows.notificator.MessageDisplay;
-import com.velox.sloan.workflows.notificator.Notificator;
-import com.velox.sloan.workflows.notificator.NotificatorSpy;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Request;
@@ -12,18 +12,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 public class RequestValidatorTest {
+    private final BulkNotificatorSpy.MyNotificator mockNotificator = new BulkNotificatorSpy.MyNotificator();
     private Request requestMock = mock(Request.class);
-    private NotificatorSpy errorNotificatorSpy;
+    private BulkNotificatorSpy errorBulkNotificatorSpy;
     private String errorMessage = "Error message";
     private RequestValidator requestValidator = new RequestValidator();
 
     @Before
     public void setUp() {
-        errorNotificatorSpy = new NotificatorSpy();
+        errorBulkNotificatorSpy = new BulkNotificatorSpy(mockNotificator);
         LoggerAndPopupDisplayer.configure(mock(MessageDisplay.class));
     }
 
@@ -41,8 +41,8 @@ public class RequestValidatorTest {
         boolean valid = requestValidator.isValid(requestMock);
 
         assertTrue(valid);
-        assertThat(errorNotificatorSpy.getAddedMessages().size(), is(0));
-        assertThat(errorNotificatorSpy.getNotifiedMessage(), is(""));
+        assertThat(errorBulkNotificatorSpy.getAddedMessages().size(), is(0));
+        assertThat(errorBulkNotificatorSpy.getNotifiedMessage(), is(""));
     }
 
     @Test
@@ -52,9 +52,9 @@ public class RequestValidatorTest {
         boolean valid = requestValidator.isValid(requestMock);
 
         assertFalse(valid);
-        assertThat(errorNotificatorSpy.getAddedMessages().size(), is(1));
-        assertThat(errorNotificatorSpy.getAddedMessages().get(0), is(errorMessage));
-        assertThat(errorNotificatorSpy.getNotifiedMessage(), is(errorMessage));
+        assertThat(errorBulkNotificatorSpy.getAddedMessages().size(), is(1));
+        assertThat(errorBulkNotificatorSpy.getAddedMessages().get(0), is(errorMessage));
+        assertThat(errorBulkNotificatorSpy.getNotifiedMessage(), is(errorMessage));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class RequestValidatorTest {
         boolean valid = requestValidator.isValid(requestMock);
 
         assertTrue(valid);
-        assertThat(errorNotificatorSpy.getAddedMessages().size(), is(0));
+        assertThat(errorBulkNotificatorSpy.getAddedMessages().size(), is(0));
     }
 
     @Test
@@ -78,7 +78,7 @@ public class RequestValidatorTest {
         boolean valid = requestValidator.isValid(requestMock);
 
         assertTrue(valid);
-        assertThat(errorNotificatorSpy.getAddedMessages().size(), is(0));
+        assertThat(errorBulkNotificatorSpy.getAddedMessages().size(), is(0));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class RequestValidatorTest {
         boolean valid = requestValidator.isValid(requestMock);
 
         assertFalse(valid);
-        assertThat(errorNotificatorSpy.getAddedMessages().size(), is(4));
+        assertThat(errorBulkNotificatorSpy.getAddedMessages().size(), is(4));
     }
 
     @Test
@@ -105,7 +105,7 @@ public class RequestValidatorTest {
         boolean valid = requestValidator.isValid(requestMock);
 
         assertFalse(valid);
-        assertThat(errorNotificatorSpy.getAddedMessages().size(), is(4));
+        assertThat(errorBulkNotificatorSpy.getAddedMessages().size(), is(4));
     }
 
     @Test
@@ -119,7 +119,7 @@ public class RequestValidatorTest {
         boolean valid = requestValidator.isValid(requestMock);
 
         assertFalse(valid);
-        assertThat(errorNotificatorSpy.getAddedMessages().size(), is(1));
+        assertThat(errorBulkNotificatorSpy.getAddedMessages().size(), is(1));
     }
 
     @Test
@@ -130,97 +130,103 @@ public class RequestValidatorTest {
         boolean valid = requestValidator.isValid(requestMock);
 
         assertFalse(valid);
-        assertThat(errorNotificatorSpy.getAddedMessages().size(), is(1));
+        assertThat(errorBulkNotificatorSpy.getAddedMessages().size(), is(1));
     }
 
     @Test
     public void whenAllValidatorsAreValid_shouldNotNotifyAnyMessages() {
-        NotificatorSpy notificatorSpy1 = new NotificatorSpy();
-        requestValidator.addValidator(getValidatorMock(notificatorSpy1, true, "error1"));
-        NotificatorSpy notificatorSpy2 = new NotificatorSpy();
-        requestValidator.addValidator(getValidatorMock(notificatorSpy2, true, "error2"));
+        BulkNotificatorSpy bulkNotificatorSpy1 = new BulkNotificatorSpy(mockNotificator);
+        requestValidator.addValidator(getValidatorMock(bulkNotificatorSpy1, true, "error1"));
+        BulkNotificatorSpy bulkNotificatorSpy2 = new BulkNotificatorSpy(mockNotificator);
+        requestValidator.addValidator(getValidatorMock(bulkNotificatorSpy2, true, "error2"));
 
         boolean valid = requestValidator.isValid(requestMock);
 
         assertTrue(valid);
-        assertThat(notificatorSpy1.getNotifiedMessage(), is(""));
-        assertThat(notificatorSpy2.getNotifiedMessage(), is(""));
+        assertThat(bulkNotificatorSpy1.getNotifiedMessage(), is(""));
+        assertThat(bulkNotificatorSpy2.getNotifiedMessage(), is(""));
 
     }
 
     @Test
     public void whenOneValidatorIsInvalid_shouldNotifyItsNotificator() {
-        NotificatorSpy notificatorSpy1 = new NotificatorSpy();
+        BulkNotificatorSpy bulkNotificatorSpy1 = new BulkNotificatorSpy(mockNotificator);
         String errorMessage = "error1";
-        requestValidator.addValidator(getValidatorMock(notificatorSpy1, false, errorMessage));
+        requestValidator.addValidator(getValidatorMock(bulkNotificatorSpy1, false, errorMessage));
 
         boolean valid = requestValidator.isValid(requestMock);
 
         assertFalse(valid);
-        assertThat(notificatorSpy1.getNotifiedMessage(), is(errorMessage));
+        assertThat(bulkNotificatorSpy1.getNotifiedMessage(), is(errorMessage));
     }
 
     @Test
     public void whenOneValidatorIsInvalidAndOneValid_shouldNotifyInvalidNotificator() {
-        NotificatorSpy notificatorSpy1 = new NotificatorSpy();
-        NotificatorSpy notificatorSpy2 = new NotificatorSpy();
+        BulkNotificatorSpy bulkNotificatorSpy1 = new BulkNotificatorSpy(mockNotificator);
+        BulkNotificatorSpy bulkNotificatorSpy2 = new BulkNotificatorSpy(new BulkNotificatorSpy.MyNotificator());
         String errorMessage1 = "error1";
         String errorMessage2 = "error2";
-        requestValidator.addValidator(getValidatorMock(notificatorSpy1, false, errorMessage1));
-        requestValidator.addValidator(getValidatorMock(notificatorSpy2, true, errorMessage2));
+        requestValidator.addValidator(getValidatorMock(bulkNotificatorSpy1, false, errorMessage1));
+        requestValidator.addValidator(getValidatorMock(bulkNotificatorSpy2, true, errorMessage2));
 
         boolean valid = requestValidator.isValid(requestMock);
 
         assertFalse(valid);
-        assertThat(notificatorSpy1.getNotifiedMessage(), is(errorMessage1));
-        assertThat(notificatorSpy2.getNotifiedMessage(), is(""));
+        assertThat(bulkNotificatorSpy1.getNotifiedMessage(), is(errorMessage1));
+        assertThat(bulkNotificatorSpy2.getNotifiedMessage(), is(""));
     }
 
     @Test
     public void whenTwoValidatorAreInvalidUsingSameNotificator_shouldConcatMessagesInOneNotificator() {
-        NotificatorSpy notificatorSpy1 = new NotificatorSpy();
+        BulkNotificatorSpy bulkNotificatorSpy1 = new BulkNotificatorSpy(mockNotificator);
         String errorMessage1 = "error1";
         String errorMessage2 = "error2";
-        requestValidator.addValidator(getValidatorMock(notificatorSpy1, false, errorMessage1));
-        requestValidator.addValidator(getValidatorMock(notificatorSpy1, false, errorMessage2));
+        requestValidator.addValidator(getValidatorMock(bulkNotificatorSpy1, false, errorMessage1));
+        requestValidator.addValidator(getValidatorMock(bulkNotificatorSpy1, false, errorMessage2));
 
         boolean valid = requestValidator.isValid(requestMock);
 
         assertFalse(valid);
-        assertThat(notificatorSpy1.getNotifiedMessage(), is(errorMessage1+errorMessage2));
-        assertThat(notificatorSpy1.getReqIdToNotifyCounter().values().stream().anyMatch(counter -> counter == 1), is(true));
+        assertThat(bulkNotificatorSpy1.getNotifiedMessage(), is(errorMessage1 + errorMessage2));
+        assertThat(bulkNotificatorSpy1.getReqIdToNotifyCounter().values().stream().anyMatch(counter -> counter == 1), is(true));
     }
 
-    private Validator getValidatorMock(Notificator notificatorSpy, Boolean valid, String message) {
-        Validator validValidatorMock = mock(Validator.class);
-        when(validValidatorMock.isValid(any())).thenReturn(valid);
-        when(validValidatorMock.getMessage(any())).thenReturn(message);
-        when(validValidatorMock.getNotificator()).thenReturn(notificatorSpy);
-        when(validValidatorMock.shouldValidate(any())).thenReturn(true);
-        doCallRealMethod().when(validValidatorMock).addMessage(any());
+    private Validator getValidatorMock(BulkNotificatorSpy bulkNotificatorSpy, Boolean valid, String message) {
+        Validator validator = new Validator() {
+            @Override
+            public boolean isValid(Request request) {
+                return valid;
+            }
 
-        return validValidatorMock;
+            @Override
+            public BulkNotificator getBulkNotificator() {
+                return bulkNotificatorSpy;
+            }
+
+            @Override
+            public String getMessage(Request request) {
+                return message;
+            }
+
+            @Override
+            public String getName() {
+                return "";
+            }
+
+            @Override
+            public boolean shouldValidate(Request request) {
+                return true;
+            }
+        };
+
+        return validator;
     }
 
     private Validator getValidValidatorMock() {
-        Validator validValidatorMock = mock(Validator.class);
-        when(validValidatorMock.isValid(any())).thenReturn(true);
-        when(validValidatorMock.getNotificator()).thenReturn(errorNotificatorSpy);
-        when(validValidatorMock.shouldValidate(any())).thenReturn(true);
-        doCallRealMethod().when(validValidatorMock).addMessage(any());
-
-        return validValidatorMock;
+        return getValidatorMock(errorBulkNotificatorSpy, true, "");
     }
 
     private Validator getInvalidValidatorMock() {
-        Validator invalidValidatorMock = mock(Validator.class);
-        when(invalidValidatorMock.isValid(any())).thenReturn(false);
-        when(invalidValidatorMock.getNotificator()).thenReturn(errorNotificatorSpy);
-        when(invalidValidatorMock.getMessage(any())).thenReturn(errorMessage);
-        when(invalidValidatorMock.shouldValidate(any())).thenReturn(true);
-        doCallRealMethod().when(invalidValidatorMock).addMessage(any());
-
-        return invalidValidatorMock;
+        return getValidatorMock(errorBulkNotificatorSpy, false, errorMessage);
     }
-
 }

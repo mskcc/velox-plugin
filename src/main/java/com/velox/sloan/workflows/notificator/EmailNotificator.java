@@ -1,28 +1,29 @@
 package com.velox.sloan.workflows.notificator;
 
-import org.mskcc.util.BasicMail;
+import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
+import org.mskcc.util.EmailSender;
 
-public class EmailNotificator extends Notificator {
-    private final BasicMail basicMail;
-    private final MessageDisplay messageDisplay;
-    private final String from = "rezae@mskcc.org";
-    private final String to = "rezae@mskcc.org";
-    private final String host = "cbio.mskcc.org";
+public class EmailNotificator implements Notificator {
+    private final EmailSender emailSender;
+    private final EmailConfiguration emailConfiguration;
 
-    public EmailNotificator(BasicMail basicMail, MessageDisplay messageDisplay) {
-        this.basicMail = basicMail;
-        this.messageDisplay = messageDisplay;
+    public EmailNotificator(EmailSender emailSender, EmailConfiguration emailConfiguration) {
+        this.emailSender = emailSender;
+        this.emailConfiguration = emailConfiguration;
     }
 
     @Override
     public void notifyMessage(String requestId, String message) {
-        String title = String.format("Request: %s issues: \n", requestId);
-        String subject = String.format("Issues with request: %s", requestId);
+        String title = String.format("Request: %s has issues which may result in errors while generating manifest files: \n", requestId);
+        String subject = String.format("Validation issues for request: %s", requestId);
 
-        try {
-            basicMail.send(from, to, host, subject, title + message);
-        } catch (Exception e) {
-            messageDisplay.logErrorMessage(String.format("Unable to send email from: %s to: %s using host: %s", from, to, host));
+        for (String recipient : emailConfiguration.getRecipients()) {
+            try {
+                LoggerAndPopupDisplayer.logInfo(String.format("Sending email to: %s", recipient));
+                emailSender.send(emailConfiguration.getFrom(), recipient, emailConfiguration.getHost(), subject, title + message);
+            } catch (Exception e) {
+                LoggerAndPopupDisplayer.logError(String.format("Unable to send email from: %s to: %s using host: %s", emailConfiguration.getFrom(), recipient, emailConfiguration.getHost()), e);
+            }
         }
     }
 

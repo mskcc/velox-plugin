@@ -1,7 +1,7 @@
 package com.velox.sloan.workflows.validator;
 
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.mskcc.domain.Request;
 
 import java.util.LinkedList;
@@ -12,34 +12,39 @@ class RequestValidator {
     private final List<Validator> validators = new LinkedList<>();
 
     public boolean isValid(Request request) {
+        boolean isRequestValid = true;
         for (Validator validator : validators) {
-            if (validator.shouldValidate(request)) {
-                validate(request, validator);
-            }
+            if (!isValid(request, validator))
+                isRequestValid = false;
         }
 
         notifyErrorNotificators(request);
 
-        return getNofiticatorsToNotify().count() == 0;
+        return isRequestValid;
     }
 
-    private void validate(Request request, Validator validator) {
+    private boolean isValid(Request request, Validator validator) {
+        if (!validator.shouldValidate(request))
+            return true;
+
         boolean valid = validator.isValid(request);
         if (!valid)
             validator.addMessage(request);
 
         LoggerAndPopupDisplayer.logInfo(String.format("Validation result for request: %s using validator: %s, result: %s",
                 request.getId(), validator.getName(), valid ? "valid" : "invalid"));
+
+        return valid;
     }
 
     private void notifyErrorNotificators(Request request) {
-        getNofiticatorsToNotify()
+        getNotificatorsToNotify()
                 .forEach(en -> en.notifyAllMessages(request.getId()));
     }
 
-    private Stream<Notificator> getNofiticatorsToNotify() {
+    private Stream<BulkNotificator> getNotificatorsToNotify() {
         return validators.stream()
-                .map(v -> v.getNotificator())
+                .map(Validator::getBulkNotificator)
                 .distinct()
                 .filter(n -> !n.getMessages().isEmpty());
     }
@@ -47,5 +52,4 @@ class RequestValidator {
     void addValidator(Validator validator) {
         validators.add(validator);
     }
-
 }

@@ -3,11 +3,10 @@ package com.velox.sloan.workflows.validator.converter;
 import com.velox.api.datarecord.DataRecord;
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
 import com.velox.sloan.workflows.validator.retriever.RequestRetriever;
-import com.velox.sloan.workflows.validator.retriever.VeloxRequestRetriever;
 import org.mskcc.domain.Request;
+import org.mskcc.domain.RequestType;
 import org.mskcc.domain.Strand;
 import org.mskcc.domain.sample.Sample;
-import org.mskcc.util.Constants;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -60,7 +59,7 @@ public class SampleRecordsToRequestsConverter implements Converter<Collection<Da
 
     private void setRequestType(Request request) {
         if(rnaSeqRequestPredicate.test(request))
-            request.setRequestType(Constants.RNASEQ);
+            request.setRequestType(RequestType.RNASEQ);
     }
 
     private Request getRequest(String reqId) throws Exception {

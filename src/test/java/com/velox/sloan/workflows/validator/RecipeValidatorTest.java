@@ -2,7 +2,7 @@ package com.velox.sloan.workflows.validator;
 
 import com.velox.api.datarecord.DataRecord;
 import com.velox.api.user.User;
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Recipe;
@@ -18,7 +18,8 @@ import static org.mockito.Mockito.mock;
 
 public class RecipeValidatorTest {
     private Request request;
-    private Notificator notificator = mock(Notificator.class);
+    private BulkNotificator notificator = mock(BulkNotificator.class);
+    private final RecipeValidator recipeValidator = new RecipeValidator(notificator);
     private User user = mock(User.class);
     private Map<String, DataRecord> sampleIdToRecords = Collections.emptyMap();
 
@@ -28,31 +29,64 @@ public class RecipeValidatorTest {
     }
 
     @Test
-    public void whenRecipesListIsEmpty_shouldReturnTrue() {
-        RecipeValidator recipeValidator = new RecipeValidator(notificator);
+    public void whenRequestHasNoSamples_shouldReturnTrue() {
+        assertThat(recipeValidator.isValid(request), is(true));
+    }
+
+    @Test
+    public void whenRequestHasOneSampleWithoutRecipe_shouldReturnFalse() {
+        Sample sample = new Sample("45435_D");
+        request.putSampleIfAbsent(sample);
+
+        assertThat(recipeValidator.isValid(request), is(false));
+    }
+
+    @Test
+    public void whenNoneOfTheSamplesHaveRecipe_shouldReturnFalse() {
+        request.putSampleIfAbsent(new Sample("45435_D"));
+        request.putSampleIfAbsent(new Sample("11135_D"));
+        request.putSampleIfAbsent(new Sample("4324435_D"));
+
+        assertThat(recipeValidator.isValid(request), is(false));
+    }
+
+    @Test
+    public void whenRequestHasOneSampleWithRecipe_shouldReturnTrue() {
+        Sample sample = getSample("5435434543", Recipe.AMPLI_SEQ);
+        request.putSampleIfAbsent(sample);
 
         assertThat(recipeValidator.isValid(request), is(true));
     }
 
     @Test
-    public void whenRecipesContainOneValue_shouldReturnTrue() {
-        RecipeValidator recipeValidator = new RecipeValidator(notificator);
+    public void whenAllOfTheSamplesHaveRecipe_shouldReturnTrue() {
+        request.putSampleIfAbsent(getSample("123", Recipe.AMPLI_SEQ));
+        request.putSampleIfAbsent(getSample("432", Recipe.AMPLI_SEQ));
+        request.putSampleIfAbsent(getSample("54545", Recipe.AMPLI_SEQ));
+        request.putSampleIfAbsent(getSample("444", Recipe.AMPLI_SEQ));
 
+        assertThat(recipeValidator.isValid(request), is(true));
+    }
+
+    @Test
+    public void whenAllButOneOfTheSamplesHaveRecipe_shouldReturnFalse() {
+        request.putSampleIfAbsent(getSample("123", Recipe.AMPLI_SEQ));
+        request.putSampleIfAbsent(getSample("432", Recipe.AMPLI_SEQ));
+        request.putSampleIfAbsent(new Sample("54543"));
+        request.putSampleIfAbsent(getSample("444", Recipe.AMPLI_SEQ));
+
+        assertThat(recipeValidator.isValid(request), is(false));
+    }
+
+    @Test
+    public void whenRecipesContainOneValue_shouldReturnTrue() {
         Sample sample = getSample("id1", Recipe.RNA_SEQ_POLY_A);
         request.putSampleIfAbsent(sample);
         assertThat(recipeValidator.isValid(request), is(true));
     }
 
-    private Sample getSample(String id, Recipe recipe) {
-        Sample sample = new Sample(id);
-        sample.setRecipe(recipe);
-        return sample;
-    }
-
     @Test
     public void whenRecipesContainTwoSameValues_shouldReturnTrue() {
-        RecipeValidator recipeValidator = new RecipeValidator(notificator);
-
         request.putSampleIfAbsent(getSample("id1", Recipe.RNA_SEQ_POLY_A));
         request.putSampleIfAbsent(getSample("id2", Recipe.RNA_SEQ_POLY_A));
 
@@ -61,8 +95,6 @@ public class RecipeValidatorTest {
 
     @Test
     public void whenRecipesContainTwoDifferentValues_shouldReturnFalse() {
-        RecipeValidator recipeValidator = new RecipeValidator(notificator);
-
         request.putSampleIfAbsent(getSample("id1", Recipe.RNA_SEQ_POLY_A));
         request.putSampleIfAbsent(getSample("id2", Recipe.AMPLI_SEQ));
         assertThat(recipeValidator.isValid(request), is(false));
@@ -70,13 +102,17 @@ public class RecipeValidatorTest {
 
     @Test
     public void whenRecipesContainMultipleSameValueAndOneDifferent_shouldReturnFalse() {
-        RecipeValidator recipeValidator = new RecipeValidator(notificator);
-
         request.putSampleIfAbsent(getSample("id1", Recipe.RNA_SEQ_POLY_A));
         request.putSampleIfAbsent(getSample("id2", Recipe.RNA_SEQ_POLY_A));
         request.putSampleIfAbsent(getSample("id3", Recipe.ARCHER_FUSION_PLEX));
         request.putSampleIfAbsent(getSample("id4", Recipe.RNA_SEQ_POLY_A));
 
         assertThat(recipeValidator.isValid(request), is(false));
+    }
+
+    private Sample getSample(String id, Recipe recipe) {
+        Sample sample = new Sample(id);
+        sample.setRecipe(recipe);
+        return sample;
     }
 }

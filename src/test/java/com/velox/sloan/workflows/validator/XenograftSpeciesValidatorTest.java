@@ -1,6 +1,6 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Request;
@@ -16,7 +16,7 @@ public class XenograftSpeciesValidatorTest {
 
     @Before
     public void setUp() {
-        xenograftSpeciesValidator = new XenograftSpeciesValidator(mock(Notificator.class));
+        xenograftSpeciesValidator = new XenograftSpeciesValidator(mock(BulkNotificator.class));
     }
 
     @Test

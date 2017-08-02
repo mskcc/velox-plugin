@@ -1,27 +1,19 @@
 package com.velox.sloan.workflows.notificator;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class NotificatorSpy extends Notificator {
-    private String message = "";
+public class BulkNotificatorSpy extends BulkNotificator {
     private List<String> addedMessages = new LinkedList<>();
     private Map<String, Integer> reqIdToNotifyCounter = new HashMap<>();
+    private MyNotificator mockNotificator;
 
-    @Override
-    public void notifyMessage(String requestId, String message) {
-        this.message = message;
-    }
-
-    @Override
-    public String getMessageSeparator() {
-        return "";
+    public BulkNotificatorSpy(MyNotificator mockNotificator) {
+        super(Arrays.asList(mockNotificator));
+        this.mockNotificator = mockNotificator;
     }
 
     public String getNotifiedMessage() {
-        return message;
+        return mockNotificator.message;
     }
 
     public List<String> getAddedMessages() {
@@ -44,5 +36,19 @@ public class NotificatorSpy extends Notificator {
 
     public Map<String, Integer> getReqIdToNotifyCounter() {
         return reqIdToNotifyCounter;
+    }
+
+    public static class MyNotificator implements Notificator {
+        public String message = "";
+
+        @Override
+        public void notifyMessage(String requestId, String message) {
+            this.message = message;
+        }
+
+        @Override
+        public String getMessageSeparator() {
+            return "";
+        }
     }
 }

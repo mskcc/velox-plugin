@@ -1,30 +1,20 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.sloan.workflows.notificator.Notificator;
+import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.mskcc.domain.Request;
 
-import java.util.Map;
+public interface Validator {
+    boolean isValid(Request request);
 
-public abstract class Validator {
-    private Notificator notificator;
+    BulkNotificator getBulkNotificator();
 
-    public Validator(Notificator notificator) {
-        this.notificator = notificator;
-    }
+    String getMessage(Request request);
 
-    abstract boolean isValid(Request request);
+    String getName();
 
-    Notificator getNotificator() {
-        return notificator;
-    }
+    boolean shouldValidate(Request request);
 
-    abstract String getMessage(Request request);
-
-    abstract String getName();
-
-    abstract boolean shouldValidate(Request request);
-
-    void addMessage(Request request) {
-        getNotificator().addMessage(request.getId(), getMessage(request));
+    default void addMessage(Request request) {
+        getBulkNotificator().addMessage(request.getId(), getMessage(request));
     }
 }

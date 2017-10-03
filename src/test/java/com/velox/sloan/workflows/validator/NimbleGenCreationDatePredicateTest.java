@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mskcc.TestUtils.assertThrown;
+import static org.mskcc.util.TestUtils.assertThrown;
 
 public class NimbleGenCreationDatePredicateTest {
     private NimbGenProtocolValidPredicate.NimbleGenCreationDatePredicate nimbleGenCreationDatePredicate = new NimbGenProtocolValidPredicate.NimbleGenCreationDatePredicate();

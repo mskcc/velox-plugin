@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mskcc.util.TestUtils.assertThrown;
 
 public class NimbleGenExistsPredicateTest {
     private NimbGenProtocolValidPredicate.NimbleGenExistsPredicate nimbleGenExistsPredicate = new NimbGenProtocolValidPredicate.NimbleGenExistsPredicate();
@@ -17,7 +18,7 @@ public class NimbleGenExistsPredicateTest {
     public void whenNoNimbGenProtocolsExist_shouldThrowAnException() {
         Sample sample = new Sample("2345_P_2");
 
-        Optional<Exception> exception = org.mskcc.TestUtils.assertThrown(() -> nimbleGenExistsPredicate.test(sample));
+        Optional<Exception> exception = assertThrown(() -> nimbleGenExistsPredicate.test(sample));
 
         assertThat(exception.isPresent(), is(true));
         assertThat(exception.get().getClass(), IsCompatibleType.typeCompatibleWith(InvalidNimbleGenProtocolException.class));

@@ -15,6 +15,7 @@ import com.velox.sloan.workflows.config.LimsConfigurationSource;
 import com.velox.sloan.workflows.notificator.MessageDisplay;
 import com.velox.sloan.workflows.notificator.NotificatorFactory;
 import com.velox.sloan.workflows.validator.converter.*;
+import com.velox.sloan.workflows.validator.retriever.PooledAttachedSamplesRetriever;
 import com.velox.sloan.workflows.validator.retriever.SampleRetriever;
 import com.velox.sloan.workflows.validator.retriever.VeloxRequestRetriever;
 import com.velox.sloan.workflows.validator.retriever.VeloxSampleRetriever;
@@ -26,6 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+
+/***
+ *  Validator Plugin validates requests' properties which are then required to create Manifest Files.
+ *  Validator Plugin should be run during the workflow where POOLED samples are attached.
+ */
 
 public class RequestValidatorPlugin extends DefaultGenericPlugin implements MessageDisplay {
     private final RequestValidator requestValidator = new RequestValidator();
@@ -54,7 +60,7 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
             logInfo("Running validator plugin");
             init();
             validateRequests();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logError(String.format("Unable to validate requests for workflow: %s, task: %s", activeWorkflow.getActiveWorkflowName(), activeTask.getFullName()), e);
         }
 
@@ -95,7 +101,7 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
                 new SpeciesValidator(notificatorFactory.getEmailNotificator()),
                 new XenograftSpeciesValidator(notificatorFactory.getEmailNotificator()),
                 new StrandValidator(notificatorFactory.getEmailNotificator()),
-                new SampleClassValidator(notificatorFactory.getEmailNotificator()),
+                new SampleClassValidator(notificatorFactory.getEmailNotificator(), new SampleClassValidPredicate()),
                 new KapaProtocolValidator(notificatorFactory.getEmailNotificator(), new KapaProtocolValidator.KapaProtocolValidPredicate(), samplesValidator),
                 new NimleGenProtocolValidator(notificatorFactory.getEmailNotificator(), new NimbGenProtocolValidPredicate(), samplesValidator),
                 new DnaLibraryProtocolValidator(notificatorFactory.getEmailNotificator(), new DnaLibraryProtocolValidator.DnaLibraryProtocolValidPredicate(), samplesValidator)
@@ -104,8 +110,8 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
 
     private Map<String, DataRecord> getSampleIgoIdToRecordMap() throws Exception {
         Map<String, DataRecord> sampleIgoIdToSampleRecord = new HashMap<>();
-        List<DataRecord> sampleRecords = activeTask.getAttachedDataRecords(DT_Sample.DATA_TYPE, user);
-        for (DataRecord sampleRecord : sampleRecords) {
+        List<DataRecord> poolsRecords = getAttachedSamples();
+        for (DataRecord sampleRecord : poolsRecords) {
             String igoId = sampleRecord.getStringVal(DT_Sample.SAMPLE_ID, user);
             sampleIgoIdToSampleRecord.put(igoId, sampleRecord);
         }
@@ -113,9 +119,13 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
         return sampleIgoIdToSampleRecord;
     }
 
+    private List<DataRecord> getAttachedSamples() throws Exception {
+        return new PooledAttachedSamplesRetriever(activeTask, user).retrieve();
+    }
+
     private Map<String, Request> getRequestIdToRequestMap() throws Exception {
         SampleRetriever sampleRetriever = new VeloxSampleRetriever(sampleIgoIdToRecord, dataRecordManager, user, cmoSampleInfoConverter);
-        Converter<DataRecord, Sample> sampleConverter = new SampleConverter(user, dataRecordManager, notificatorFactory.getEmailNotificator(), sampleRetriever);
+        Converter<DataRecord, Sample> sampleConverter = new SampleConverter(user, dataRecordManager, notificatorFactory.getPopupNotificator(), sampleRetriever);
         SampleRecordsToRequestsConverter sampleRecordsToRequestsConverter = new SampleRecordsToRequestsConverter(sampleConverter, requestRetriever, requestConverter, rnaSeqRequestPredicate);
 
         return sampleRecordsToRequestsConverter.convert(sampleIgoIdToRecord.values());

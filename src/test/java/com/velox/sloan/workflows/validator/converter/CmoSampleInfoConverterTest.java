@@ -2,9 +2,9 @@ package com.velox.sloan.workflows.validator.converter;
 
 import org.hamcrest.object.IsCompatibleType;
 import org.junit.Test;
-import org.mskcc.TestUtils;
 import org.mskcc.domain.sample.CmoSampleInfo;
 import org.mskcc.domain.sample.TumorNormalType;
+import org.mskcc.util.TestUtils;
 import org.mskcc.util.VeloxConstants;
 
 import java.util.HashMap;

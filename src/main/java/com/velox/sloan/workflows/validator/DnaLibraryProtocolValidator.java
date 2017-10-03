@@ -37,7 +37,7 @@ public class DnaLibraryProtocolValidator implements Validator {
     @Override
     public String getMessage(Request request) {
         Set<Sample> nonValidSamples = samplesValidator.getNonValidSamples(request, dnaLibraryProtocolValidPredicate);
-        String nonValidSampleIds = Utils.getJoinedIgoAndCmoSamplesIds(nonValidSamples);
+        String nonValidSampleIds = Utils.getJoinedIgoIds(nonValidSamples);
 
         return String.format("Request: %s has samples with no valid Dna Library Protocol with Elution Volume set: %s", request.getId(), nonValidSampleIds);
     }
@@ -65,7 +65,7 @@ public class DnaLibraryProtocolValidator implements Validator {
                 protocols.addAll(dnaLibProtocol3);
 
             return protocols.stream()
-                    .anyMatch(d -> d.isValid() != null && d.isValid() && d.getProtocolFields().containsKey(VeloxConstants.ELUTION_VOL));
+                    .anyMatch(d -> d.isValid() != null && d.isValid() && d.containsField(VeloxConstants.ELUTION_VOL));
         }
     }
 }

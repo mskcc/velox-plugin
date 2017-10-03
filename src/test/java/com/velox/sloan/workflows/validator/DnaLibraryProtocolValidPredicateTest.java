@@ -155,7 +155,7 @@ public class DnaLibraryProtocolValidPredicateTest {
 
     private Protocol getEmptyValidityCorrectElutionProtocol() {
         Protocol protocol = getNoValidityNoElutionProtocol();
-        protocol.getProtocolFields().put(VeloxConstants.ELUTION_VOL, 3);
+        protocol.put(VeloxConstants.ELUTION_VOL, 3);
 
         return protocol;
     }
@@ -163,14 +163,14 @@ public class DnaLibraryProtocolValidPredicateTest {
     private Protocol getInvalidCorrectElutionProtocol() {
         Protocol protocol = getInvalidNoElutionProtocol();
         protocol.setValid(false);
-        protocol.getProtocolFields().put(VeloxConstants.ELUTION_VOL, 3);
+        protocol.put(VeloxConstants.ELUTION_VOL, 3);
 
         return protocol;
     }
 
     private Protocol getValidCorrectElutionProtocol() {
         Protocol protocol = getValidNoElutionProtocol();
-        protocol.getProtocolFields().put(VeloxConstants.ELUTION_VOL, 3);
+        protocol.put(VeloxConstants.ELUTION_VOL, 3);
 
         return protocol;
     }

@@ -6,9 +6,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Utils {
-    public static String getJoinedIgoAndCmoSamplesIds(Set<Sample> nonValidSamples) {
+    public static String getJoinedIgoIds(Set<Sample> nonValidSamples) {
         return nonValidSamples.stream()
-                .map(s -> String.format("%s (%s)", s.getIgoId(), s.getCmoSampleId()))
-                .collect(Collectors.joining(","));
+                .map(s -> s.getIgoId())
+                .collect(Collectors.joining(", "));
+    }
+
+    public static String getFormattedValue(Object value) {
+        if (value == null || value == "")
+            return "\"\"";
+        return String.format("\"%s\"", value);
     }
 }

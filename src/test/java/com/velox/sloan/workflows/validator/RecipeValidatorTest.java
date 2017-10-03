@@ -1,16 +1,11 @@
 package com.velox.sloan.workflows.validator;
 
-import com.velox.api.datarecord.DataRecord;
-import com.velox.api.user.User;
 import com.velox.sloan.workflows.notificator.BulkNotificator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Recipe;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.sample.Sample;
-
-import java.util.Collections;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -20,8 +15,6 @@ public class RecipeValidatorTest {
     private Request request;
     private BulkNotificator notificator = mock(BulkNotificator.class);
     private final RecipeValidator recipeValidator = new RecipeValidator(notificator);
-    private User user = mock(User.class);
-    private Map<String, DataRecord> sampleIdToRecords = Collections.emptyMap();
 
     @Before
     public void setUp() {
@@ -108,6 +101,20 @@ public class RecipeValidatorTest {
         request.putSampleIfAbsent(getSample("id4", Recipe.RNA_SEQ_POLY_A));
 
         assertThat(recipeValidator.isValid(request), is(false));
+    }
+
+    @Test
+    public void whenRequestHasTwoSamplesWithDifferentRecipe_shouldReturnAmbiguousRecipeMessage() throws Exception {
+        String igoId = "id1";
+        Recipe recipe1 = Recipe.AMPLI_SEQ;
+        request.putSampleIfAbsent(getSample(igoId, recipe1));
+
+        String igoId2 = "id2";
+        Recipe recipe2 = Recipe.AGILENT_V_4_51_MB_HUMAN;
+        request.putSampleIfAbsent(getSample(igoId2, recipe2));
+
+        String expectedMessage = String.format("Request %s has ambiguous recipe: %s: \"%s\", %s: \"%s\"", request.getId(), igoId, recipe1, igoId2, recipe2);
+        assertThat(recipeValidator.getMessage(request), is(expectedMessage));
     }
 
     private Sample getSample(String id, Recipe recipe) {

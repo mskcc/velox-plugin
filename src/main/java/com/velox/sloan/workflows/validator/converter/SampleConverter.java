@@ -9,6 +9,7 @@ import com.velox.api.util.ServerException;
 import com.velox.sloan.cmo.staticstrings.datatypes.DT_Sample;
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
 import com.velox.sloan.workflows.notificator.BulkNotificator;
+import com.velox.sloan.workflows.util.Utils;
 import com.velox.sloan.workflows.validator.retriever.SampleRetriever;
 import org.mskcc.domain.*;
 import org.mskcc.domain.sample.CmoSampleInfo;
@@ -85,8 +86,8 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
             if (real)
                 input = getElutionVolume(sample, protocolName, dnaLibRecord);
 
-            dnaLibraryPrepProtocol.getProtocolFields().putIfAbsent(VeloxConstants.ELUTION_VOL, input);
-            sample.getProtocols().put(protocolName, dnaLibraryPrepProtocol);
+            dnaLibraryPrepProtocol.put(VeloxConstants.ELUTION_VOL, input);
+            sample.addProtocol(protocolName, dnaLibraryPrepProtocol);
         }
 
         return input;
@@ -99,7 +100,7 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
             input = dnaLibRecord.getDoubleVal(VeloxConstants.ELUTION_VOL, user);
         } catch (NullPointerException e) {
             input = -1;
-            LoggerAndPopupDisplayer.logInfo(String.format("Cannot find elution vol for %s AKA %s Using DataRecord %s", sample.getCmoSampleId(), sample.getIgoId(), dataRecordName));
+            LoggerAndPopupDisplayer.logInfo(String.format("Cannot find elution vol for sample: %s Using DataRecord: %s", sample.getIgoId(), dataRecordName));
         } catch (Exception e) {
             LoggerAndPopupDisplayer.logInfo("Exception thrown while retrieving information about Elution Volume", e);
         }
@@ -118,7 +119,7 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
 
     private void addKapaProtocol(Sample sample, DataRecord sampleRecord) {
         sample.setKapaAgilentCaptureProtocols1(getKapaAgilentCaptureProtocol1(sample, sampleRecord));
-        sample.setKapaAgilentCaptureProtocols1(getKapaAgilentCaptureProtocol2(sample, sampleRecord));
+        sample.setKapaAgilentCaptureProtocols2(getKapaAgilentCaptureProtocol2(sample, sampleRecord));
     }
 
     private List<KapaAgilentCaptureProtocol> getKapaAgilentCaptureProtocol2(Sample sample, DataRecord sampleRecord) {
@@ -173,7 +174,7 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
             Recipe recipe = Recipe.getRecipeByValue(recipeName);
             sample.setRecipe(recipe);
         } catch (Recipe.UnsupportedRecipeException e) {
-            String message = String.format("Unsupported recipe for sample: %s", sample.getIgoId());
+            String message = String.format("Unsupported recipe: %s for sample: %s", Utils.getFormattedValue(recipeName), sample.getIgoId());
             notificator.addMessage(sample.getRequestId(), message);
             LoggerAndPopupDisplayer.logError(message, e);
         } catch (Recipe.EmptyRecipeException e) {

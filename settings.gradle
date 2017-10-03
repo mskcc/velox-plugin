@@ -1,4 +1,2 @@
 rootProject.name = 'velox-plugin'
-include 'common-domain'
-project(':common-domain').projectDir = new File(settingsDir, '../common-domain')
 

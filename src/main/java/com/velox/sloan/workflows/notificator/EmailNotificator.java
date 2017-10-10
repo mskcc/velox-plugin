@@ -1,6 +1,7 @@
 package com.velox.sloan.workflows.notificator;
 
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
+import org.mskcc.util.EmailConfiguration;
 import org.mskcc.util.EmailSender;
 
 public class EmailNotificator implements Notificator {

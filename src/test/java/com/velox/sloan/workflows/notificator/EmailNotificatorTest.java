@@ -2,6 +2,7 @@ package com.velox.sloan.workflows.notificator;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mskcc.util.EmailConfiguration;
 import org.mskcc.util.EmailSender;
 
 import javax.mail.MessagingException;

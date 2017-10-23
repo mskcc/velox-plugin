@@ -1,9 +1,11 @@
 package com.velox.sloan.workflows.validator;
 
 import com.velox.sloan.workflows.notificator.BulkNotificator;
-import org.apache.commons.lang3.StringUtils;
+import com.velox.sloan.workflows.util.Utils;
 import org.mskcc.domain.Request;
+import org.mskcc.domain.sample.Sample;
 
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 public class RecipeValidator implements Validator {
@@ -37,15 +39,14 @@ public class RecipeValidator implements Validator {
 
     @Override
     public String getMessage(Request request) {
-        return String.format("Request %s has ambiguous recipe: %s", request.getId(),
-                getRecipes(request));
+        return String.format("Request %s has ambiguous recipe: %s", request.getId(), getRecipes(request));
     }
 
     private String getRecipes(Request request) {
-        return StringUtils.join(request.getSamples().values().stream()
-                .map(s -> s.getRecipe())
-                .distinct()
-                .collect(Collectors.toSet()), ",");
+        return request.getSamples().values().stream()
+                .sorted(Comparator.comparing(Sample::getIgoId))
+                .map(s -> String.format("%s: %s", s.getIgoId(), Utils.getFormattedValue(s.getRecipe())))
+                .collect(Collectors.joining(", "));
     }
 
     @Override

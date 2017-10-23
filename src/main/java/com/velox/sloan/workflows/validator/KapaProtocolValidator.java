@@ -35,7 +35,7 @@ public class KapaProtocolValidator implements Validator {
     @Override
     public String getMessage(Request request) {
         Set<Sample> nonValidSamples = samplesValidator.getNonValidSamples(request, kapaProtocolValidPredicate);
-        String nonValidSampleIds = Utils.getJoinedIgoAndCmoSamplesIds(nonValidSamples);
+        String nonValidSampleIds = Utils.getJoinedIgoIds(nonValidSamples);
 
         return String.format("KAPAAgilentCaptureProtocols are not set for request: %s for samples: %s", request.getId(), nonValidSampleIds);
     }

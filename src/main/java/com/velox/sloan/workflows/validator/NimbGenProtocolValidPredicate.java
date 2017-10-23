@@ -42,8 +42,7 @@ public class NimbGenProtocolValidPredicate implements Predicate<Sample> {
         @Override
         public boolean test(Sample sample) {
             if (sample.getNimbleGenHybProtocols().size() == 0) {
-                throw new InvalidNimbleGenProtocolException(String.format("Nimble Gen Protocol not found for sample: %s (%s)\n",
-                        sample.getCmoSampleId(), sample.getIgoId()));
+                throw new InvalidNimbleGenProtocolException(String.format("Nimble Gen Protocol not found for sample: %s\n", sample.getIgoId()));
             }
             return true;
         }
@@ -55,8 +54,7 @@ public class NimbGenProtocolValidPredicate implements Predicate<Sample> {
             boolean anyProtocolValid = sample.getNimbleGenHybProtocols().stream()
                     .anyMatch(n -> n.isValid() != null && n.isValid());
             if (!anyProtocolValid) {
-                throw new InvalidNimbleGenProtocolException(String.format("Cannot find Valid field for nimbleGen protocol for sample: %s (%s)\n",
-                        sample.getCmoSampleId(), sample.getIgoId()));
+                throw new InvalidNimbleGenProtocolException(String.format("Cannot find Valid field for nimbleGen protocol for sample: %s\n", sample.getIgoId()));
             }
             return true;
         }
@@ -69,8 +67,7 @@ public class NimbGenProtocolValidPredicate implements Predicate<Sample> {
                     .anyMatch(n -> n.getCreationDate() != null);
 
             if (!anyProtocolHasCreationDate) {
-                throw new InvalidNimbleGenProtocolException(String.format("Cannot find creation date for nimbleGen protocol for sample: %s (%s)\n",
-                        sample.getCmoSampleId(), sample.getIgoId()));
+                throw new InvalidNimbleGenProtocolException(String.format("Cannot find creation date for nimbleGen protocol for sample: %s\n", sample.getIgoId()));
             }
             return true;
         }

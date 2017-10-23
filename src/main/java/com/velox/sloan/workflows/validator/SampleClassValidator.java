@@ -1,21 +1,20 @@
 package com.velox.sloan.workflows.validator;
 
 import com.velox.sloan.workflows.notificator.BulkNotificator;
-import org.apache.commons.lang3.StringUtils;
+import com.velox.sloan.workflows.util.Utils;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.sample.Sample;
-import org.mskcc.domain.sample.TumorNormalType;
-import org.mskcc.util.Constants;
 
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SampleClassValidator implements Validator {
-    private final Predicate<Sample> sampleClassValidPredicate = new SampleClassValidPredicate();
-    private BulkNotificator notificator;
+    private final BulkNotificator notificator;
+    private final Predicate<Sample> sampleClassValidPredicate;
 
-    public SampleClassValidator(BulkNotificator notificator) {
+    public SampleClassValidator(BulkNotificator notificator, Predicate<Sample> sampleClassValidPredicate) {
         this.notificator = notificator;
+        this.sampleClassValidPredicate = sampleClassValidPredicate;
     }
 
     @Override
@@ -29,26 +28,23 @@ public class SampleClassValidator implements Validator {
         return notificator;
     }
 
-    private boolean isSampleClassTumor(String sampleClass) {
-        return !sampleClass.contains(Constants.NORMAL);
-    }
-
-    private boolean isTumorType(TumorNormalType tumorNormalType) {
-        return tumorNormalType == TumorNormalType.TUMOR;
-    }
-
-    private boolean isNormalType(TumorNormalType tumorNormalType) {
-        return tumorNormalType == TumorNormalType.NORMAL;
-    }
-
-    private boolean isSampleClassNormal(String sampleClass) {
-        return sampleClass.contains(Constants.NORMAL);
-    }
-
     @Override
     public String getMessage(Request request) {
-        String samplesWithAmbiguousClass = request.getSamples().values().stream().filter(s -> !sampleClassValidPredicate.test(s)).map(s -> s.getIgoId()).collect(Collectors.joining(","));
-        return String.format("Request %s has samples with ambiguous sample class: %s", request.getId(), samplesWithAmbiguousClass);
+        String samplesWithAmbiguousClass = request.getSamples().values().stream()
+                .filter(s -> !sampleClassValidPredicate.test(s))
+                .map(s -> getSampleClassDescription(s))
+                .collect(Collectors.joining(",\n"));
+
+        return String.format("Request %s has samples with ambiguous sample class/type: \n%s", request.getId(), samplesWithAmbiguousClass);
+    }
+
+    private String getSampleClassDescription(Sample s) {
+        return String.format("\tsample: %s [sample class: %s, tumor/normal: %s, cmo info sample class: %s, cmo info tumor/normal: %s]",
+                s.getIgoId(),
+                Utils.getFormattedValue(s.getSampleClass()),
+                Utils.getFormattedValue(s.getTumorNormalType()),
+                Utils.getFormattedValue(s.getCmoSampleInfo().getSampleClass()),
+                Utils.getFormattedValue(s.getCmoSampleInfo().getTumorNormalType()));
     }
 
     @Override
@@ -61,23 +57,4 @@ public class SampleClassValidator implements Validator {
         return true;
     }
 
-    private class SampleClassValidPredicate implements Predicate<Sample> {
-        @Override
-        public boolean test(Sample sample) {
-            String sampleClass = sample.getSampleClass();
-            TumorNormalType tumorNormalType = sample.getTumorNormalType();
-
-            String cmoInfoSampleClass = sample.getCmoSampleInfo().getSampleClass();
-            TumorNormalType cmoInfoTumorNormalType = sample.getCmoSampleInfo().getTumorNormalType();
-
-            if (isSampleClassNormal(sampleClass))
-                return isNormalType(tumorNormalType)
-                        && (StringUtils.isEmpty(cmoInfoSampleClass) || isSampleClassNormal(cmoInfoSampleClass))
-                        && (cmoInfoTumorNormalType == null || isNormalType(cmoInfoTumorNormalType));
-
-            return isTumorType(tumorNormalType)
-                    && (StringUtils.isEmpty(cmoInfoSampleClass) || isSampleClassTumor(cmoInfoSampleClass))
-                    && (cmoInfoTumorNormalType == null || isTumorType(cmoInfoTumorNormalType));
-        }
-    }
 }

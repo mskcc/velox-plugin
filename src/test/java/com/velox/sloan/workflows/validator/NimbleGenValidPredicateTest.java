@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mskcc.util.TestUtils.assertThrown;
 
 public class NimbleGenValidPredicateTest {
     private NimbGenProtocolValidPredicate.NimbleGenValidPredicate nimbleGenValidPredicate = new NimbGenProtocolValidPredicate.NimbleGenValidPredicate();
@@ -19,7 +20,7 @@ public class NimbleGenValidPredicateTest {
         sample.addNimbleGenHybProtocol(new NimbleGenHybProtocol());
         sample.addNimbleGenHybProtocol(new NimbleGenHybProtocol());
 
-        Optional<Exception> exception = org.mskcc.TestUtils.assertThrown(() -> nimbleGenValidPredicate.test(sample));
+        Optional<Exception> exception = assertThrown(() -> nimbleGenValidPredicate.test(sample));
 
         assertThat(exception.isPresent(), is(true));
         assertThat(exception.get().getClass(), IsCompatibleType.typeCompatibleWith(InvalidNimbleGenProtocolException.class));
@@ -31,7 +32,7 @@ public class NimbleGenValidPredicateTest {
         sample.addNimbleGenHybProtocol(getInvalidNimbleGenProtocol());
         sample.addNimbleGenHybProtocol(getInvalidNimbleGenProtocol());
 
-        Optional<Exception> exception = org.mskcc.TestUtils.assertThrown(() -> nimbleGenValidPredicate.test(sample));
+        Optional<Exception> exception = assertThrown(() -> nimbleGenValidPredicate.test(sample));
 
         assertThat(exception.isPresent(), is(true));
         assertThat(exception.get().getClass(), IsCompatibleType.typeCompatibleWith(InvalidNimbleGenProtocolException.class));
@@ -43,7 +44,7 @@ public class NimbleGenValidPredicateTest {
         sample.addNimbleGenHybProtocol(getInvalidNimbleGenProtocol());
         sample.addNimbleGenHybProtocol(getInvalidNimbleGenProtocol());
 
-        Optional<Exception> exception = org.mskcc.TestUtils.assertThrown(() -> nimbleGenValidPredicate.test(sample));
+        Optional<Exception> exception = assertThrown(() -> nimbleGenValidPredicate.test(sample));
 
         assertThat(exception.isPresent(), is(true));
         assertThat(exception.get().getClass(), IsCompatibleType.typeCompatibleWith(InvalidNimbleGenProtocolException.class));

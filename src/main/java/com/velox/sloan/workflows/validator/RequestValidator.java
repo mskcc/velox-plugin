@@ -2,7 +2,7 @@ package com.velox.sloan.workflows.validator;
 
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
 import com.velox.sloan.workflows.notificator.BulkNotificator;
-import org.mskcc.domain.Request;
+import org.mskcc.domain.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -14,8 +14,14 @@ class RequestValidator {
     public boolean isValid(Request request) {
         boolean isRequestValid = true;
         for (Validator validator : validators) {
-            if (!isValid(request, validator))
+            try {
+                if (!isValid(request, validator))
+                    isRequestValid = false;
+            } catch (Recipe.EmptyRecipeException e) {
                 isRequestValid = false;
+                LoggerAndPopupDisplayer.logError(String.format("Recipe for request: %s is empty. Validation cannot be" +
+                        " fully proceeded", request.getId()));
+            }
         }
 
         notifyErrorNotificators(request);
@@ -31,7 +37,8 @@ class RequestValidator {
         if (!valid)
             validator.addMessage(request);
 
-        LoggerAndPopupDisplayer.logInfo(String.format("Validation result for request: %s using validator: %s, result: %s",
+        LoggerAndPopupDisplayer.logInfo(String.format("Validation result for request: %s using validator: %s, result:" +
+                        " %s",
                 request.getId(), validator.getName(), valid ? "valid" : "invalid"));
 
         return valid;

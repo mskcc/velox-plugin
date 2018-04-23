@@ -2,8 +2,10 @@ package com.velox.sloan.workflows.notificator;
 
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
+import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
 import com.velox.sloan.workflows.notificator.formatter.MessageFormatter;
 import com.velox.sloan.workflows.notificator.formatter.RequestMessageFormatter;
+import org.mskcc.util.notificator.Notificator;
 
 import java.util.List;
 
@@ -24,7 +26,11 @@ public class BulkNotificator {
         if (!messages.get(requestId).isEmpty()) {
             for (Notificator notificator : notificators) {
                 String message = requestMessageFormatter.getFormattedMessage(requestId, messages.get(requestId), notificator.getMessageSeparator());
-                notificator.notifyMessage(requestId, message);
+                try {
+                    notificator.notifyMessage(requestId, message);
+                } catch (Exception e) {
+                    LoggerAndPopupDisplayer.logError(e.getMessage(), e);
+                }
             }
         }
     }

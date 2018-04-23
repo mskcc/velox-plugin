@@ -7,7 +7,6 @@ import com.velox.api.util.ServerException;
 import com.velox.api.workflow.ActiveTask;
 import com.velox.sapioutils.server.plugin.DefaultGenericPlugin;
 import com.velox.sapioutils.shared.enums.PluginOrder;
-import com.velox.sloan.cmo.staticstrings.datatypes.DT_Sample;
 import com.velox.sloan.cmo.utilities.SloanCMOUtils;
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
 import com.velox.sloan.workflows.config.AppConfig;
@@ -112,7 +111,7 @@ public class RequestValidatorPlugin extends DefaultGenericPlugin implements Mess
         Map<String, DataRecord> sampleIgoIdToSampleRecord = new HashMap<>();
         List<DataRecord> poolsRecords = getAttachedSamples();
         for (DataRecord sampleRecord : poolsRecords) {
-            String igoId = sampleRecord.getStringVal(DT_Sample.SAMPLE_ID, user);
+            String igoId = sampleRecord.getStringVal(Sample.SAMPLE_ID, user);
             sampleIgoIdToSampleRecord.put(igoId, sampleRecord);
         }
 

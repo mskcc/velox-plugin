@@ -6,7 +6,6 @@ import com.velox.api.datarecord.IoError;
 import com.velox.api.datarecord.NotFound;
 import com.velox.api.user.User;
 import com.velox.api.util.ServerException;
-import com.velox.sloan.cmo.staticstrings.datatypes.DT_Sample;
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
 import com.velox.sloan.workflows.notificator.BulkNotificator;
 import com.velox.sloan.workflows.util.Utils;
@@ -41,10 +40,10 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
     public Sample convert(DataRecord sampleRecord) {
         String igoId = "";
         try {
-            igoId = sampleRecord.getStringVal(DT_Sample.SAMPLE_ID, user);
+            igoId = sampleRecord.getStringVal(Sample.SAMPLE_ID, user);
             Sample sample = new Sample(igoId);
-            sample.setCmoSampleId(sampleRecord.getStringVal(DT_Sample.OTHER_SAMPLE_ID, user));
-            sample.setRequestId(sampleRecord.getStringVal(DT_Sample.REQUEST_ID, user));
+            sample.setCmoSampleId(sampleRecord.getStringVal(Sample.OTHER_SAMPLE_ID, user));
+            sample.setRequestId(sampleRecord.getStringVal(Sample.REQUEST_ID, user));
 
             addSampleClass(sample, sampleRecord);
             addSpecies(sample, sampleRecord);
@@ -172,7 +171,7 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
 
         try {
             Recipe recipe = Recipe.getRecipeByValue(recipeName);
-            sample.setRecipe(recipe);
+            sample.setRecipe(recipe.getValue());
         } catch (Recipe.UnsupportedRecipeException e) {
             String message = String.format("Unsupported recipe: %s for sample: %s", Utils.getFormattedValue(recipeName), sample.getIgoId());
             notificator.addMessage(sample.getRequestId(), message);

@@ -1,5 +1,7 @@
 package com.velox.sloan.workflows.notificator;
 
+import org.mskcc.util.notificator.Notificator;
+
 import java.util.*;
 
 public class BulkNotificatorSpy extends BulkNotificator {

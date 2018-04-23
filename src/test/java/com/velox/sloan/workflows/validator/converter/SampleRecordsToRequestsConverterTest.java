@@ -222,7 +222,7 @@ public class SampleRecordsToRequestsConverterTest {
     private Sample getSample(String igoId, String reqId, Recipe recipe, List<Strand> strands, List<ProtocolType> protocolTypes) {
         Sample sample = new Sample(igoId);
         sample.setRequestId(reqId);
-        sample.setRecipe(Recipe.getRecipeByValue(recipe.getValue()));
+        sample.setRecipe(recipe.getValue());
         strands.forEach(s -> sample.addStrand(s));
         protocolTypes.forEach(p -> sample.addProtocol(p));
 

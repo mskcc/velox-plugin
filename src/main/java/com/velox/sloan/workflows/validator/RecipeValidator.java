@@ -4,6 +4,7 @@ import com.velox.sloan.workflows.notificator.BulkNotificator;
 import com.velox.sloan.workflows.util.Utils;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.sample.Sample;
+import org.mskcc.domain.*;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -22,7 +23,13 @@ public class RecipeValidator implements Validator {
 
     private boolean allSamplesHaveRecipeSet(Request request) {
         return request.getSamples().values().stream()
-                .allMatch(s -> s.getRecipe() != null);
+                .allMatch(s -> {
+                    try {
+                        return s.getRecipe() != null;
+                    } catch (Recipe.EmptyRecipeException e) {
+                        return false;
+                    }
+                });
     }
 
     @Override
@@ -45,8 +52,16 @@ public class RecipeValidator implements Validator {
     private String getRecipes(Request request) {
         return request.getSamples().values().stream()
                 .sorted(Comparator.comparing(Sample::getIgoId))
-                .map(s -> String.format("%s: %s", s.getIgoId(), Utils.getFormattedValue(s.getRecipe())))
+                .map(s -> String.format("%s: %s", s.getIgoId(), Utils.getFormattedValue(getRecipeIfAvailable(s))))
                 .collect(Collectors.joining(", "));
+    }
+
+    private String getRecipeIfAvailable(Sample s) {
+        try {
+            return s.getRecipe().getValue();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     @Override

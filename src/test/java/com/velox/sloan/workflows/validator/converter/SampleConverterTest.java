@@ -9,14 +9,17 @@ import com.velox.sloan.cmo.staticstrings.datatypes.DT_Sample;
 import com.velox.sloan.workflows.notificator.BulkNotificator;
 import com.velox.sloan.workflows.validator.retriever.SampleRetriever;
 import com.velox.sloan.workflows.validator.retriever.VeloxSampleRetriever;
+import org.hamcrest.object.IsCompatibleType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Recipe;
 import org.mskcc.domain.sample.CmoSampleInfo;
 import org.mskcc.domain.sample.Sample;
 import org.mskcc.domain.sample.TumorNormalType;
+import org.mskcc.util.TestUtils;
 
 import java.rmi.RemoteException;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -51,32 +54,14 @@ public class SampleConverterTest {
         assertSampleHasData(sample, igoId, reqId, recipe, tumorOrNormal, sampleClass, sampleInfoSampleClass, sampleInfoTumorOrNormal);
     }
 
-    @Test
-    public void whenSampleRecordHasUnsupportedRecipeSet_shouldAddMessageToNotificator() throws Exception {
-        String igoId = "12345_A_1";
-        String reqId = "12345_A";
-        String unsupportedRecipe = "unsupportedRecipe";
-        String sampleClass = "Tumor";
-        String tumorOrNormal = "Tumor";
-        String sampleInfoSampleClass = "Normal";
-        String sampleInfoTumorOrNormal = "Normal";
-
-        DataRecord sampleRecordMock = getSampleRecordMock(igoId, unsupportedRecipe, reqId, tumorOrNormal, sampleClass, sampleInfoTumorOrNormal, sampleInfoSampleClass);
-        when(sampleRecordMock.getChildrenOfType(any(), any())).thenReturn(new DataRecord[1]);
-
-        Sample sample = sampleConverter.convert(sampleRecordMock);
-
-        assertSampleHasData(sample, igoId, reqId, null, sampleClass, tumorOrNormal, sampleInfoSampleClass, sampleInfoTumorOrNormal);
-    }
-
     private void assertSampleHasData(Sample sample, String igoId, String reqId, Recipe recipe, String cmoSampleClass, String tumorOrNormal, String sampleInfoSampleClass, String sampleInfoTumorOrNormal) {
         assertThat(sample.getIgoId(), is(igoId));
         assertThat(sample.getRequestId(), is(reqId));
         assertThat(sample.getRecipe(), is(recipe));
         assertThat(sample.getTumorNormalType(), is(TumorNormalType.getByValue(tumorOrNormal)));
         assertThat(sample.getSampleClass(), is(cmoSampleClass));
-        assertThat(sample.getCmoSampleInfo().getSampleClass(), is(sampleInfoSampleClass));
-        assertThat(sample.getCmoSampleInfo().getTumorNormalType(), is(TumorNormalType.getByValue(sampleInfoTumorOrNormal)));
+        assertThat(sample.getCmoSampleInfo().getCMOSampleClass(), is(sampleInfoSampleClass));
+        assertThat(sample.getCmoSampleInfo().getTumorOrNormal(), is(sampleInfoTumorOrNormal));
     }
 
     private DataRecord getSampleRecordMock(String igoId, String recipe, String reqId, String tumorOrNormal, String cmoSampleClass, String sampleInfoTumorOrNormal, String sampleInfoSampleClass) throws NotFound, RemoteException, IoError {
@@ -96,8 +81,8 @@ public class SampleConverterTest {
 
     private CmoSampleInfo getCmoSampleInfo(String sampleInfoTumorOrNormal, String sampleInfoSampleClass) {
         CmoSampleInfo cmoSampleInfo = new CmoSampleInfo();
-        cmoSampleInfo.setTumorNormalType(TumorNormalType.getByValue(sampleInfoTumorOrNormal));
-        cmoSampleInfo.setSampleClass(sampleInfoSampleClass);
+        cmoSampleInfo.setTumorOrNormal(sampleInfoTumorOrNormal);
+        cmoSampleInfo.setCMOSampleClass(sampleInfoSampleClass);
         return cmoSampleInfo;
     }
 }

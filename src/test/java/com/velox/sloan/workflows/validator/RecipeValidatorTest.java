@@ -1,11 +1,16 @@
 package com.velox.sloan.workflows.validator;
 
 import com.velox.sloan.workflows.notificator.BulkNotificator;
+import org.hamcrest.object.IsCompatibleType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mskcc.domain.Recipe;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.sample.Sample;
+import org.mskcc.util.*;
+import org.mskcc.util.TestUtils;
+
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -31,8 +36,10 @@ public class RecipeValidatorTest {
         Sample sample = new Sample("45435_D");
         request.putSampleIfAbsent(sample);
 
-        assertThat(recipeValidator.isValid(request), is(false));
-    }
+        Optional<Exception> exception = TestUtils.assertThrown(() -> recipeValidator.isValid(request));
+
+        assertThat(exception.isPresent(), is(true));
+        assertThat(exception.get().getClass(), IsCompatibleType.typeCompatibleWith(Recipe.EmptyRecipeException.class));    }
 
     @Test
     public void whenNoneOfTheSamplesHaveRecipe_shouldReturnFalse() {
@@ -40,8 +47,10 @@ public class RecipeValidatorTest {
         request.putSampleIfAbsent(new Sample("11135_D"));
         request.putSampleIfAbsent(new Sample("4324435_D"));
 
-        assertThat(recipeValidator.isValid(request), is(false));
-    }
+        Optional<Exception> exception = TestUtils.assertThrown(() -> recipeValidator.isValid(request));
+
+        assertThat(exception.isPresent(), is(true));
+        assertThat(exception.get().getClass(), IsCompatibleType.typeCompatibleWith(Recipe.EmptyRecipeException.class));    }
 
     @Test
     public void whenRequestHasOneSampleWithRecipe_shouldReturnTrue() {
@@ -68,7 +77,10 @@ public class RecipeValidatorTest {
         request.putSampleIfAbsent(new Sample("54543"));
         request.putSampleIfAbsent(getSample("444", Recipe.AMPLI_SEQ));
 
-        assertThat(recipeValidator.isValid(request), is(false));
+        Optional<Exception> exception = TestUtils.assertThrown(() -> recipeValidator.isValid(request));
+
+        assertThat(exception.isPresent(), is(true));
+        assertThat(exception.get().getClass(), IsCompatibleType.typeCompatibleWith(Recipe.EmptyRecipeException.class));
     }
 
     @Test
@@ -119,7 +131,7 @@ public class RecipeValidatorTest {
 
     private Sample getSample(String id, Recipe recipe) {
         Sample sample = new Sample(id);
-        sample.setRecipe(recipe);
+        sample.setRecipe(recipe.getValue());
         return sample;
     }
 }

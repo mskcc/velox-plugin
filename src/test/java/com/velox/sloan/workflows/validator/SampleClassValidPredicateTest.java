@@ -118,8 +118,8 @@ public class SampleClassValidPredicateTest {
 
     private CmoSampleInfo getSampleInfo(String type, TumorNormalType tumorNormalType) {
         CmoSampleInfo sampleInfo = new CmoSampleInfo();
-        sampleInfo.setSampleClass(type);
-        sampleInfo.setTumorNormalType(tumorNormalType);
+        sampleInfo.setCMOSampleClass(type);
+        sampleInfo.setTumorOrNormal(tumorNormalType == null ? "" : tumorNormalType.getValue());
         return sampleInfo;
     }
 }

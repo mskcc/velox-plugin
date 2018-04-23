@@ -11,9 +11,9 @@ public class CmoSampleInfoConverter implements Converter<Map<String, Object>, Cm
     public CmoSampleInfo convert(Map<String, Object> sampleInfo) {
         CmoSampleInfo cmoSampleInfo = new CmoSampleInfo();
 
-        cmoSampleInfo.setSampleClass(String.valueOf(sampleInfo.get(VeloxConstants.CMO_SAMPLE_CLASS)));
+        cmoSampleInfo.setCMOSampleClass(String.valueOf(sampleInfo.get(VeloxConstants.CMO_SAMPLE_CLASS)));
         TumorNormalType tumorNormalType = TumorNormalType.getByValue(String.valueOf(sampleInfo.get(VeloxConstants.TUMOR_OR_NORMAL)));
-        cmoSampleInfo.setTumorNormalType(tumorNormalType);
+        cmoSampleInfo.setTumorOrNormal(tumorNormalType.getValue());
 
         return cmoSampleInfo;
     }

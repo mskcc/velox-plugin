@@ -34,7 +34,7 @@ public class StrandValidatorTest {
     private Request getSmarterAmpRecipeRequest() {
         Request request = new Request("12345_P");
         Sample smarterAmpSample = new Sample("12345_P_1");
-        smarterAmpSample.setRecipe(Recipe.SMARTER_AMP_SEQ);
+        smarterAmpSample.setRecipe(Recipe.SMARTER_AMP_SEQ.getValue());
         request.putSampleIfAbsent(smarterAmpSample);
         return request;
     }

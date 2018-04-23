@@ -1,7 +1,7 @@
 package com.velox.sloan.workflows.config;
 
 import com.velox.sloan.workflows.LoggerAndPopupDisplayer;
-import org.mskcc.util.EmailConfiguration;
+import org.mskcc.util.email.EmailConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;

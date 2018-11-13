@@ -13,8 +13,9 @@ public class SampleClassValidPredicate implements Predicate<Sample> {
         String sampleClass = sample.getSampleClass();
         TumorNormalType tumorNormalType = sample.getTumorNormalType();
 
-        String cmoInfoSampleClass = sample.getCmoSampleInfo().getSampleClass();
-        TumorNormalType cmoInfoTumorNormalType = sample.getCmoSampleInfo().getTumorNormalType();
+        String cmoInfoSampleClass = sample.getCmoSampleInfo().getCMOSampleClass();
+        String tumorOrNormal = sample.getCmoSampleInfo().getTumorOrNormal();
+        TumorNormalType cmoInfoTumorNormalType = TumorNormalType.getByValue(tumorOrNormal);
 
         if (isSampleClassNormal(sampleClass))
             return isNormalType(tumorNormalType)

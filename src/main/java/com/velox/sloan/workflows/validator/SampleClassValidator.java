@@ -43,8 +43,8 @@ public class SampleClassValidator implements Validator {
                 s.getIgoId(),
                 Utils.getFormattedValue(s.getSampleClass()),
                 Utils.getFormattedValue(s.getTumorNormalType()),
-                Utils.getFormattedValue(s.getCmoSampleInfo().getSampleClass()),
-                Utils.getFormattedValue(s.getCmoSampleInfo().getTumorNormalType()));
+                Utils.getFormattedValue(s.getCmoSampleInfo().getCMOSampleClass()),
+                Utils.getFormattedValue(s.getCmoSampleInfo().getTumorOrNormal()));
     }
 
     @Override

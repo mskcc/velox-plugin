@@ -26,8 +26,8 @@ public class CmoSampleInfoConverterTest {
 
         CmoSampleInfo cmoSampleInfo = cmoSampleInfoConverter.convert(sampleInfo);
 
-        assertThat(cmoSampleInfo.getSampleClass(), is(normalSampleClass));
-        assertThat(cmoSampleInfo.getTumorNormalType(), is(TumorNormalType.NORMAL));
+        assertThat(cmoSampleInfo.getCMOSampleClass(), is(normalSampleClass));
+        assertThat(cmoSampleInfo.getTumorOrNormal(), is(TumorNormalType.NORMAL.getValue()));
     }
 
     @Test
@@ -39,8 +39,8 @@ public class CmoSampleInfoConverterTest {
 
         CmoSampleInfo cmoSampleInfo = cmoSampleInfoConverter.convert(sampleInfo);
 
-        assertThat(cmoSampleInfo.getSampleClass(), is(normalSampleClass));
-        assertThat(cmoSampleInfo.getTumorNormalType(), is(TumorNormalType.TUMOR));
+        assertThat(cmoSampleInfo.getCMOSampleClass(), is(normalSampleClass));
+        assertThat(cmoSampleInfo.getTumorOrNormal(), is(TumorNormalType.TUMOR.getValue()));
     }
 
     @Test
@@ -52,8 +52,8 @@ public class CmoSampleInfoConverterTest {
 
         CmoSampleInfo cmoSampleInfo = cmoSampleInfoConverter.convert(sampleInfo);
 
-        assertThat(cmoSampleInfo.getSampleClass(), is(sampleClas));
-        assertThat(cmoSampleInfo.getTumorNormalType(), is(TumorNormalType.TUMOR));
+        assertThat(cmoSampleInfo.getCMOSampleClass(), is(sampleClas));
+        assertThat(cmoSampleInfo.getTumorOrNormal(), is(TumorNormalType.TUMOR.getValue()));
     }
 
     @Test
@@ -65,8 +65,8 @@ public class CmoSampleInfoConverterTest {
 
         CmoSampleInfo cmoSampleInfo = cmoSampleInfoConverter.convert(sampleInfo);
 
-        assertThat(cmoSampleInfo.getSampleClass(), is(sampleClass));
-        assertThat(cmoSampleInfo.getTumorNormalType(), is(TumorNormalType.NORMAL));
+        assertThat(cmoSampleInfo.getCMOSampleClass(), is(sampleClass));
+        assertThat(cmoSampleInfo.getTumorOrNormal(), is(TumorNormalType.NORMAL.getValue()));
     }
 
     @Test
@@ -77,7 +77,6 @@ public class CmoSampleInfoConverterTest {
         sampleInfo.put(VeloxConstants.TUMOR_OR_NORMAL, "notExisting");
 
         Optional<Exception> exception = TestUtils.assertThrown(() -> cmoSampleInfoConverter.convert(sampleInfo));
-
         assertThat(exception.isPresent(), is(true));
         assertThat(exception.get().getClass(), IsCompatibleType.typeCompatibleWith(TumorNormalType.UnsupportedTumorNormalTypeException.class));
     }

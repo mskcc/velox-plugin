@@ -31,6 +31,10 @@ public class RecipeValidatorTest {
         Sample sample = new Sample("45435_D");
         request.putSampleIfAbsent(sample);
 
+
+               //  .allMatch(s -> s.getRecipe() != null);
+
+        System.out.println(">>>" + sample.getRecipe());
         assertThat(recipeValidator.isValid(request), is(false));
     }
 
@@ -119,7 +123,7 @@ public class RecipeValidatorTest {
 
     private Sample getSample(String id, Recipe recipe) {
         Sample sample = new Sample(id);
-        sample.setRecipe(recipe);
+        sample.setRecipe(recipe.getValue());
         return sample;
     }
 }

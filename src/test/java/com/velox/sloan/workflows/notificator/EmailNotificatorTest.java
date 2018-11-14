@@ -2,11 +2,9 @@ package com.velox.sloan.workflows.notificator;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mskcc.util.EmailConfiguration;
-import org.mskcc.util.EmailSender;
+import org.mskcc.util.email.*;
 
 import javax.mail.MessagingException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,11 +13,11 @@ import static org.hamcrest.core.Is.is;
 
 public class EmailNotificatorTest {
     private EmailNotificator emailNotificator;
-    private EmailSenderSpy emailSenderSpy;
+    private EmailSender emailSender;
 
     @Before
     public void setUp() throws Exception {
-        emailSenderSpy = new EmailSenderSpy();
+        emailSender = new EmailSenderSpy();
     }
 
     @Test
@@ -29,7 +27,7 @@ public class EmailNotificatorTest {
         String host = "sweet@host.ble";
         String message = "message to send";
         EmailConfiguration emailConfig = new EmailConfiguration(recipients, from, host);
-        emailNotificator = new EmailNotificator(emailSenderSpy, emailConfig);
+        emailNotificator = new EmailNotificator(emailSender, emailConfig);
 
         emailNotificator.notifyMessage("123", message);
 
@@ -42,7 +40,7 @@ public class EmailNotificatorTest {
         String from = "from@king.julian";
         String host = "sweet@host.ble";
         EmailConfiguration emailConfig = new EmailConfiguration(recipients, from, host);
-        emailNotificator = new EmailNotificator(emailSenderSpy, emailConfig);
+        emailNotificator = new EmailNotificator(emailSender, emailConfig);
 
         String message = "very interesting message";
         emailNotificator.notifyMessage("123", message);
@@ -51,46 +49,24 @@ public class EmailNotificatorTest {
     }
 
     private void assertEmailSendToAllRecipients(List<String> recipients, String from, String host, String message) {
-        assertThat(emailSenderSpy.getEmails().size(), is(recipients.size()));
-        for (int i = 0; i < recipients.size(); i++) {
-            assertThat(emailSenderSpy.getEmails().get(i).from, is(from));
-            assertThat(emailSenderSpy.getEmails().get(i).to, is(recipients.get(i)));
-            assertThat(emailSenderSpy.getEmails().get(i).host, is(host));
-            assertThat(emailSenderSpy.getEmails().get(i).text.contains(message), is(true));
-        }
+        EmailSenderSpy emailSenderSpy = (EmailSenderSpy) emailSender;
+        assertThat(emailSenderSpy.getEmail().getFrom(), is(from));
+        assertThat(emailSenderSpy.getEmail().getRecipients(), is(recipients));
+        assertThat(emailSenderSpy.getEmail().getHost(), is(host));
+        assertThat(emailSenderSpy.getEmail().getMessage(), is(message));
     }
 
     private class EmailSenderSpy implements EmailSender {
-        private List<Email> emails = new ArrayList<>();
+
+        private Email email;
 
         @Override
-        public void send(String from, String to, String host, String subject, String text) throws MessagingException {
-            Email email = new Email(from, to, host, subject, text);
-            emails.add(email);
+        public void send(Email email) throws MessagingException {
+            this.email = email;
         }
 
-        @Override
-        public void sendWithFiles(String from, String to, String host, String subject, String text, String files) throws MessagingException {
-        }
-
-        public List<Email> getEmails() {
-            return emails;
-        }
-
-        class Email {
-            private String from;
-            private String to;
-            private String host;
-            private String subject;
-            private String text;
-
-            Email(String from, String to, String host, String subject, String text) {
-                this.from = from;
-                this.to = to;
-                this.host = host;
-                this.subject = subject;
-                this.text = text;
-            }
+        public Email getEmail() {
+            return email;
         }
     }
 }

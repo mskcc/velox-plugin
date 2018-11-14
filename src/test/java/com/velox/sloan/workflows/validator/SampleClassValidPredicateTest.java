@@ -25,7 +25,7 @@ public class SampleClassValidPredicateTest {
 
     @Test
     public void whenRequestHasOneTumorClassAndTypeSampleWithTumorClassAndTypeSampleInfo_shouldReturnValid() {
-        Sample sample = getSample(TUMOR_CLASS, TumorNormalType.TUMOR, TUMOR_CLASS, TumorNormalType.TUMOR);
+        Sample sample = getSample(TUMOR_CLASS, TumorNormalType.TUMOR, TUMOR_CLASS, TumorNormalType.TUMOR.getValue());
 
         boolean valid = sampleClassValidPredicate.test(sample);
 
@@ -34,7 +34,7 @@ public class SampleClassValidPredicateTest {
 
     @Test
     public void whenRequestHasOneTumorClassAndTypeSampleWithSampleTumorClassNormalTypeInfo_shouldReturnInvalid() {
-        Sample sample = getSample(TUMOR_CLASS, TumorNormalType.TUMOR, TUMOR_CLASS, TumorNormalType.NORMAL);
+        Sample sample = getSample(TUMOR_CLASS, TumorNormalType.TUMOR, TUMOR_CLASS, TumorNormalType.NORMAL.getValue());
 
         boolean valid = sampleClassValidPredicate.test(sample);
 
@@ -43,7 +43,7 @@ public class SampleClassValidPredicateTest {
 
     @Test
     public void whenRequestHasOneTumorClassAndTypeSampleWithSampleNormalClassTumorTypeInfo_shouldReturnInvalid() {
-        Sample sample = getSample(TUMOR_CLASS, TumorNormalType.TUMOR, NORMAL_CLASS, TumorNormalType.TUMOR);
+        Sample sample = getSample(TUMOR_CLASS, TumorNormalType.TUMOR, NORMAL_CLASS, TumorNormalType.TUMOR.getValue());
 
         boolean valid = sampleClassValidPredicate.test(sample);
 
@@ -52,7 +52,7 @@ public class SampleClassValidPredicateTest {
 
     @Test
     public void whenRequestHasOneTumorClassAndTypeSampleWithSampleInfoNormalClassNormalType_shouldReturnInvalid() {
-        Sample sample = getSample(TUMOR_CLASS, TumorNormalType.TUMOR, NORMAL_CLASS, TumorNormalType.NORMAL);
+        Sample sample = getSample(TUMOR_CLASS, TumorNormalType.TUMOR, NORMAL_CLASS, TumorNormalType.NORMAL.getValue());
 
         boolean valid = sampleClassValidPredicate.test(sample);
 
@@ -70,7 +70,7 @@ public class SampleClassValidPredicateTest {
 
     @Test
     public void whenRequestHasOneNormalClassAndTypeSampleWithSampleInfoNormalClassNormalType_shouldReturnValid() {
-        Sample sample = getSample(NORMAL_CLASS, TumorNormalType.NORMAL, NORMAL_CLASS, TumorNormalType.NORMAL);
+        Sample sample = getSample(NORMAL_CLASS, TumorNormalType.NORMAL, NORMAL_CLASS, TumorNormalType.NORMAL.getValue());
 
         boolean valid = sampleClassValidPredicate.test(sample);
 
@@ -79,7 +79,7 @@ public class SampleClassValidPredicateTest {
 
     @Test
     public void whenRequestHasOneNormalClassAndTypeSampleWithSampleInfoNormalClassTumorType_shouldReturnInvalid() {
-        Sample sample = getSample(NORMAL_CLASS, TumorNormalType.NORMAL, NORMAL_CLASS, TumorNormalType.TUMOR);
+        Sample sample = getSample(NORMAL_CLASS, TumorNormalType.NORMAL, NORMAL_CLASS, TumorNormalType.TUMOR.getValue());
 
         boolean valid = sampleClassValidPredicate.test(sample);
 
@@ -88,7 +88,7 @@ public class SampleClassValidPredicateTest {
 
     @Test
     public void whenRequestHasOneNormalClassAndTypeSampleWithSampleInfoTumorClassNormalType_shouldReturnInvalid() {
-        Sample sample = getSample(NORMAL_CLASS, TumorNormalType.NORMAL, TUMOR_CLASS, TumorNormalType.NORMAL);
+        Sample sample = getSample(NORMAL_CLASS, TumorNormalType.NORMAL, TUMOR_CLASS, TumorNormalType.NORMAL.getValue());
 
         boolean valid = sampleClassValidPredicate.test(sample);
 
@@ -97,14 +97,14 @@ public class SampleClassValidPredicateTest {
 
     @Test
     public void whenRequestHasOneNormalClassAndTypeSampleWithSampleInfoTumorClassTumorType_shouldReturnInvalid() {
-        Sample sample = getSample(NORMAL_CLASS, TumorNormalType.NORMAL, TUMOR_CLASS, TumorNormalType.TUMOR);
+        Sample sample = getSample(NORMAL_CLASS, TumorNormalType.NORMAL, TUMOR_CLASS, TumorNormalType.TUMOR.getValue());
 
         boolean valid = sampleClassValidPredicate.test(sample);
 
         assertFalse(valid);
     }
 
-    private Sample getSample(String sampleClass, TumorNormalType tumorNormalType, String sampleInfoClass, TumorNormalType sampleInfoTumorNormalType) {
+    private Sample getSample(String sampleClass, TumorNormalType tumorNormalType, String sampleInfoClass, String sampleInfoTumorNormalType) {
         Sample sample = new Sample(getNextSampleId());
         sample.setSampleClass(sampleClass);
         sample.setTumorNormalType(tumorNormalType);
@@ -116,10 +116,10 @@ public class SampleClassValidPredicateTest {
         return "12345_P" + (sampleCounter++);
     }
 
-    private CmoSampleInfo getSampleInfo(String type, TumorNormalType tumorNormalType) {
+    private CmoSampleInfo getSampleInfo(String type, String tumorNormalType) {
         CmoSampleInfo sampleInfo = new CmoSampleInfo();
-        sampleInfo.setSampleClass(type);
-        sampleInfo.setTumorNormalType(tumorNormalType);
+        sampleInfo.setCMOSampleClass(type);
+        sampleInfo.setTumorOrNormal(tumorNormalType);
         return sampleInfo;
     }
 }

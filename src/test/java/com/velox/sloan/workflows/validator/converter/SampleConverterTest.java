@@ -75,8 +75,8 @@ public class SampleConverterTest {
         assertThat(sample.getRecipe(), is(recipe));
         assertThat(sample.getTumorNormalType(), is(TumorNormalType.getByValue(tumorOrNormal)));
         assertThat(sample.getSampleClass(), is(cmoSampleClass));
-        assertThat(sample.getCmoSampleInfo().getSampleClass(), is(sampleInfoSampleClass));
-        assertThat(sample.getCmoSampleInfo().getTumorNormalType(), is(TumorNormalType.getByValue(sampleInfoTumorOrNormal)));
+        assertThat(sample.getCmoSampleInfo().getCMOSampleClass(), is(sampleInfoSampleClass));
+        assertThat(sample.getCmoSampleInfo().getTumorOrNormal(), is(sampleInfoTumorOrNormal));
     }
 
     private DataRecord getSampleRecordMock(String igoId, String recipe, String reqId, String tumorOrNormal, String cmoSampleClass, String sampleInfoTumorOrNormal, String sampleInfoSampleClass) throws NotFound, RemoteException, IoError {
@@ -96,8 +96,8 @@ public class SampleConverterTest {
 
     private CmoSampleInfo getCmoSampleInfo(String sampleInfoTumorOrNormal, String sampleInfoSampleClass) {
         CmoSampleInfo cmoSampleInfo = new CmoSampleInfo();
-        cmoSampleInfo.setTumorNormalType(TumorNormalType.getByValue(sampleInfoTumorOrNormal));
-        cmoSampleInfo.setSampleClass(sampleInfoSampleClass);
+        cmoSampleInfo.setTumorOrNormal(sampleInfoTumorOrNormal);
+        cmoSampleInfo.setCMOSampleClass(sampleInfoSampleClass);
         return cmoSampleInfo;
     }
 }

@@ -7,13 +7,14 @@ import org.mskcc.domain.Recipe;
 import org.mskcc.domain.Request;
 import org.mskcc.domain.sample.Sample;
 
+import java.util.Collections;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.mock;
 
 public class RecipeValidatorTest {
     private Request request;
-    private BulkNotificator notificator = mock(BulkNotificator.class);
+    private BulkNotificator notificator = new BulkNotificator(Collections.emptyList());
     private final RecipeValidator recipeValidator = new RecipeValidator(notificator);
 
     @Before
@@ -30,11 +31,6 @@ public class RecipeValidatorTest {
     public void whenRequestHasOneSampleWithoutRecipe_shouldReturnFalse() {
         Sample sample = new Sample("45435_D");
         request.putSampleIfAbsent(sample);
-
-
-               //  .allMatch(s -> s.getRecipe() != null);
-
-        System.out.println(">>>" + sample.getRecipe());
         assertThat(recipeValidator.isValid(request), is(false));
     }
 

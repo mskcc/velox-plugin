@@ -22,7 +22,16 @@ public class RecipeValidator implements Validator {
 
     private boolean allSamplesHaveRecipeSet(Request request) {
         return request.getSamples().values().stream()
-                .allMatch(s -> s.getRecipe() != null);
+                .allMatch(
+                        s ->
+                        {
+                            try {
+                                return s.getRecipe() != null;
+                            } catch (Exception e) {
+                                return false;
+                            }
+                        }
+                );
     }
 
     @Override

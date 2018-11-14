@@ -171,6 +171,7 @@ public class SampleConverter implements Converter<DataRecord, Sample> {
         String recipeName = sampleRecord.getStringVal(VeloxConstants.RECIPE, user);
 
         try {
+            Recipe.getRecipeByValue(recipeName);
             sample.setRecipe(recipeName);
         } catch (Recipe.UnsupportedRecipeException e) {
             String message = String.format("Unsupported recipe: %s for sample: %s", Utils.getFormattedValue(recipeName), sample.getIgoId());
